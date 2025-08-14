@@ -1,43 +1,16 @@
-# DripVet (dripvet)
+#Trabalho de GPDS - parte 2 (DripVet - Sistema de Gerencimanto para Clínica Veterinária)
 
-Sistema de gerenciamento para clínica veterinária
 
-## Install the dependencies
+##Como executar
+1.É necessário baixar o framwork Quasar para rodar o programa
+2.Em seu terminal digite: quasar dev (isso irá redirecioná-la á pagina web)
+3.Nos campos de login insira: leidineiacruz1@gmail.com - email
+                              12345678 - senha
+                              
 
-```bash
-yarn
-# or
-npm install
-```
-
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
-
-```bash
-quasar dev
-```
-
-### Lint the files
-
-```bash
-yarn lint
-# or
-npm run lint
-```
-
-### Format the files
-
-```bash
-yarn format
-# or
-npm run format
-```
-
-### Build the app for production
-
-```bash
-quasar build
-```
-
-### Customize the configuration
-
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+##Integrantes
+- Francyelli Bordinhão Mendonça
+- Gabriela Rabelo de Melo
+- Leidineia da Cruz
+- Nicole Louredes da Silva Gome
+- Sidney Alves 
