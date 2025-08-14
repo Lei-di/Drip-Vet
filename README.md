@@ -16,5 +16,5 @@
 - Francyelli Bordinhão Mendonça
 - Gabriela Rabelo de Melo
 - Leidineia da Cruz
-- Nicole Louredes da Silva Gome
+- Nicole Lourdes da Silva Gomes
 - Sidney Alves 
