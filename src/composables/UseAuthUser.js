@@ -31,17 +31,37 @@ export default function useAuthUser() {
     return !!user.value
   }
 
-  const register = async ({ email, password, ...meta }) => {
+  const register = async ({ email, password, nome, role = "user" }) => {
+    // 1. Cria o usuário no Supabase Auth
     const { data, error } = await supabase.auth.signUp(
       { email, password },
       {
-        data: meta,
+        data: { nome, role }, // salva em user_metadata (Auth)
         redirectTo: `${window.location.origin}/me?fromEmail=registrationConfirmation`
       }
     )
+
     if (error) throw error
-    user.value = data.user
-    return data.user
+
+    const authUser = data.user
+
+    // 2. Insere também na tabela "usuarios"
+    const { error: insertError } = await supabase
+      .from("usuarios")
+      .insert([
+        {
+          email,
+          nome,
+          role,
+          auth_id: authUser.id // relacional com auth.users
+        }
+      ])
+
+    if (insertError) throw insertError
+
+    // 3. Atualiza o estado global
+    user.value = authUser
+    return authUser
   }
 
   const update = async (data) => {
