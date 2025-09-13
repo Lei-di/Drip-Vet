@@ -7,6 +7,8 @@ export const user = ref(null)
 export default function useAuthUser() {
   const { supabase } = useSupabase()
 
+  
+
   const login = async ({ email, password }) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
