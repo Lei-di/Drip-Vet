@@ -8,17 +8,6 @@
         class="col-12"
         :loading="loading"
       >
-
-      <q-card>
-        <q-separator />
-        <q-card-section>
-          <div class="text-subtitle1">Endereço</div>
-          <div>{{ tutor.endereco?.rua }}, {{ tutor.endereco?.numero }}</div>
-          <div>{{ tutor.endereco?.bairro }} - {{ tutor.endereco?.cidade }} / {{ tutor.endereco?.estado }}</div>
-          <div>CEP: {{ tutor.endereco?.cep }}</div>
-        </q-card-section>
-      </q-card>
-
         <template v-slot:top>
           <span class="text-h6">
             Tutores
@@ -72,13 +61,13 @@ import useAuthUser from 'src/composables/UseAuthUser'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { columnsTutor } from './table'
-import useSupabase from "../../../../../../Programas/VET/DripVetNick/src/boot/supabase.js";
+import useSupabase from 'src/boot/supabase'
 
 export default defineComponent({
   name: 'PageTutorList',
   setup () {
     const { supabase } = useSupabase()
-    const tutor = ref([])
+    const tutores = ref([])
     const loading = ref(true)
     const router = useRouter()
     const $q = useQuasar()
@@ -90,27 +79,33 @@ export default defineComponent({
 
     const handleListTutor = async () => {
       loading.value = true
-      const { data, error } = await supabase
-      .from('tutores')
-      .select(`
-        *,
-        endereco (
-          rua,
-          numero,
-          bairro,
-          cidade,
-          estado,
-          cep
-        )
-      `)
-      .eq('user_id', user.value.id)
-      loading.value = false
-    if (error) {
-      notifyError(error.message)
-    } else {
-      tutor.value = data[0]
+      try {
+        const { data, error } = await supabase
+          .from('tutores')
+          .select(`
+            *,
+            endereco (
+              rua,
+              numero,
+              bairro,
+              cidade,
+              estado,
+              cep
+            )
+          `)
+          .eq('user_id', user.value.id)
+        
+        if (error) {
+          notifyError(error.message)
+        } else {
+          tutores.value = data || []
+        }
+      } catch (error) {
+        notifyError(error.message)
+      } finally {
+        loading.value = false
+      }
     }
-  }
 
     const handleEdit = (tutores) => {
       router.push({ name: 'form-tutor', params: { id: tutores.id } })
@@ -139,7 +134,7 @@ export default defineComponent({
 
     return {
       columnsTutor,
-      tutor,
+      tutores,
       loading,
       handleEdit,
       handleRemoveTutor
