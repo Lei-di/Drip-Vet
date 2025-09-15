@@ -57,9 +57,7 @@
 import { defineComponent, ref, onMounted } from 'vue'
 import useApi from 'src/composables/UseApi'
 import useNotify from 'src/composables/UseNotify'
-import useAuthUser from 'src/composables/UseAuthUser'
 import { useRouter } from 'vue-router'
-import { useQuasar } from 'quasar'
 import { columnsTutor } from './table'
 import useSupabase from 'src/boot/supabase'
 
@@ -70,30 +68,17 @@ export default defineComponent({
     const tutores = ref([])
     const loading = ref(true)
     const router = useRouter()
-    const $q = useQuasar()
-    const { user } = useAuthUser()
     const table = 'tutores'
 
     const { remove } = useApi()
-    const { notifyError, notifySuccess } = useNotify()
+    const { notifyError, notifySuccess, confirmDialog } = useNotify()
 
     const handleListTutor = async () => {
       loading.value = true
       try {
         const { data, error } = await supabase
           .from('tutores')
-          .select(`
-            *,
-            endereco (
-              rua,
-              numero,
-              bairro,
-              cidade,
-              estado,
-              cep
-            )
-          `)
-          .eq('user_id', user.value.id)
+          .select('*')
         
         if (error) {
           notifyError(error.message)
@@ -113,16 +98,16 @@ export default defineComponent({
 
     const handleRemoveTutor = async (tutores) => {
       try {
-        $q.dialog({
-          title: 'Confirmação',
-          message: `Deseja realmente remover ${tutores.nome} ?`,
-          cancel: true,
-          persistent: true
-        }).onOk(async () => {
+        const confirmed = await confirmDialog(
+          'Confirmação',
+          `Deseja realmente remover ${tutores.nome} ?`
+        )
+        
+        if (confirmed) {
           await remove(table, tutores.id)
           notifySuccess('Tutor removido com sucesso!')
           handleListTutor()
-        })
+        }
       } catch (error) {
         notifyError(error.message)
       }

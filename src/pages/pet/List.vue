@@ -94,7 +94,7 @@ export default defineComponent({
     }
 
     const handleEdit = (pet) => {
-      router.push({ name: 'form-pets', params: { id: pet.id } })
+      router.push({ name: 'form-pet', params: { id: pet.id } })
     }
 
     const handleRemovePets = async (pets) => {

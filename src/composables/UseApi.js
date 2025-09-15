@@ -29,16 +29,6 @@ export default function useApi () {
     return data
   }
 
-  /*const listPublic = async (table, userId, columnFilter = '', filter = '') => {
-    const { data, error } = await supabase
-      .from(table)
-      .select('*')
-      .eq('user_id', userId)
-      .eq(columnFilter, filter)
-    if (error) throw error
-    return data
-  }*/
-
   const fetchCount = async (table, userId) => {
     const { data, error, count } = await supabase
       .from(table)
@@ -52,46 +42,60 @@ export default function useApi () {
   }
 
   const getById = async (table, id) => {
-  const { data, error } = await supabase
-    .from(table)
-    .select(`*, endereco ( id, rua, numero, bairro, cidade, estado, cep )`)
-    .eq('id', id)
-    .single()
-  if (error) throw error
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .eq('id', id)
+      .single()
+    if (error) throw error
 
-  const usuario = {
-    ...data,
-    endereco_id: data.endereco?.id,
-    rua: data.endereco?.rua,
-    numero: data.endereco?.numero,
-    bairro: data.endereco?.bairro,
-    cidade: data.endereco?.cidade,
-    estado: data.endereco?.estado,
-    cep: data.endereco?.cep
+    // Se for a tabela tutores, buscar endereço separadamente
+    if (table === 'tutores' && data.endereco) {
+      try {
+        const { data: enderecoData } = await supabase
+          .from('endereco')
+          .select('*')
+          .eq('id', data.endereco)
+          .single()
+
+        if (enderecoData) {
+          return {
+            ...data,
+            endereco_id: enderecoData.id,
+            rua: enderecoData.rua,
+            numero: enderecoData.numero,
+            bairro: enderecoData.bairro,
+            cidade: enderecoData.cidade,
+            estado: enderecoData.estado,
+            cep: enderecoData.cep
+          }
+        }
+      } catch (enderecoError) {
+        console.warn('Erro ao buscar endereço:', enderecoError)
+      }
+    }
+
+    return data
   }
-
-  return usuario
-}
-
 
   const post = async (table, form) => {
     const { data, error } = await supabase
       .from(table)
-      .insert([
-        {
-          ...form,
-          user_id: user.value.id
-        }
-      ])
+      .insert([form])
     if (error) throw error
     return data
   }
 
   const update = async (table, form) => {
+    // Verificar se o ID existe e é válido
+    if (!form.id || form.id === 'null' || form.id === null) {
+      throw new Error('ID inválido para atualização')
+    }
+
     const { data, error } = await supabase
       .from(table)
       .update({ ...form })
-      .match({ id: form.id })
+      .eq('id', form.id)
     if (error) throw error
     return data
   }
@@ -100,7 +104,7 @@ export default function useApi () {
     const { data, error } = await supabase
       .from(table)
       .delete()
-      .match({ id })
+      .eq('id', id)
     if (error) throw error
     return data
   }
@@ -150,7 +154,6 @@ export default function useApi () {
 
   return {
     list,
-    //listPublic,
     fetchCount,
     getById,
     post,

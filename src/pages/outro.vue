@@ -25,21 +25,22 @@ defineOptions({
 
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { login } from 'src/services/loginService' // fornecido pela Pessoa A
+import useAuthUser from 'src/composables/UseAuthUser'
 
 const email = ref('')
 const senha = ref('')
 const erro = ref('')
 const router = useRouter()
+const { login } = useAuthUser()
 
 async function fazerLogin() {
   erro.value = ''
-  const { error } = await login(email.value, senha.value)
-
-  if (error) {
+  try {
+    await login({ email: email.value, password: senha.value })
+    router.push('/app/home')
+  } catch (error) {
+    console.error('Erro no login:', error)
     erro.value = 'E-mail ou senha inválidos'
-  } else {
-    router.push('/home')
   }
 }
 </script>

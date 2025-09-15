@@ -89,7 +89,7 @@ export default defineComponent({
       router.push({ name: 'form-estoqueMed', params: { id: estoqueMedicamentos.id } })
     }
 
-    const handleRemoveEstoqueMedicamentos = async (estoqueMedicamentos) => {
+    const handleRemoveEstoqueMed = async (estoqueMedicamentos) => {
       try {
         $q.dialog({
           title: 'Confirmar',
@@ -115,7 +115,7 @@ export default defineComponent({
       estoque_medicamentos,
       loading,
       handleEdit,
-      handleRemoveEstoqueMedicamentos
+      handleRemoveEstoqueMed
     }
   }
 })

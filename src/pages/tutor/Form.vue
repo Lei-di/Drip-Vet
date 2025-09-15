@@ -1,4 +1,4 @@
-<template>
+00<template>
   <q-page padding>
     <div class="row justify-center">
       <div class="col-12 text-center">
@@ -124,7 +124,12 @@ export default defineComponent({
       whatsapp: '',
       email: '',
       observacoes: '',
-      endereco: ''
+      rua: '',
+      numero: '',
+      bairro: '',
+      cidade: '',
+      estado: '',
+      cep: ''
     })
 
     onMounted(() => {
@@ -134,62 +139,69 @@ export default defineComponent({
     })
 
     const handleSubmit = async () => {
-  try {
-    let usuarioId
+      try {
+        if (isUpdate.value) {
+          // Atualiza dados do tutor
+          await update('tutores', form.value)
 
-    if (isUpdate.value) {
-      // Atualiza dados do tutor
-      await update('tutores', form.value)
+          // Se tem endereço, atualiza
+          if (form.value.endereco_id) {
+            await update('endereco', {
+              id: form.value.endereco_id,
+              rua: form.value.rua,
+              numero: form.value.numero,
+              bairro: form.value.bairro,
+              cidade: form.value.cidade,
+              estado: form.value.estado,
+              cep: form.value.cep
+            })
+          }
 
-      // Atualiza endereço existente (assumindo que endereço tem ID no form)
-      await update('endereco', {
-        id: form.value.endereco, // você precisa garantir esse ID no form
-        rua: form.value.rua,
-        numero: form.value.numero,
-        bairro: form.value.bairro,
-        cidade: form.value.cidade,
-        estado: form.value.estado,
-        cep: form.value.cep
-      })
+          notifySuccess('Tutor atualizado com sucesso!')
+        } else {
+          // Cadastra o tutor
+          const usuario = await post('tutores', {
+            nome: form.value.nome,
+            cpf: form.value.cpf,
+            whatsapp: form.value.whatsapp.replace(/\D/g, ''),
+            email: form.value.email,
+            observacoes: form.value.observacoes
+          })
 
-      notifySuccess('Tutor atualizado com sucesso!')
-    } else {
-      // Cadastra o tutor
-      const usuario = await post('tutores', {
-        nome: form.value.nome,
-        cpf: form.value.cpf,
-        whatsapp: form.value.whatsapp,
-        email: form.value.email,
-        description: form.value.description
-      })
+          const usuarioId = usuario[0]?.id
 
-      usuarioId = usuario[0]?.id
+          // Cadastra o endereço vinculado ao novo tutor
+          await post('endereco', {
+            rua: form.value.rua,
+            numero: form.value.numero,
+            bairro: form.value.bairro,
+            cidade: form.value.cidade,
+            estado: form.value.estado,
+            cep: form.value.cep,
+            tutor: usuarioId
+          })
 
-      // Cadastra o endereço vinculado ao novo tutor
-      await post('enderecos', {
-        rua: form.value.rua,
-        numero: form.value.numero,
-        bairro: form.value.bairro,
-        cidade: form.value.cidade,
-        estado: form.value.estado,
-        cep: form.value.cep,
-        usuario_id: usuarioId
-      })
+          notifySuccess('Tutor salvo com sucesso!')
+        }
 
-      notifySuccess('Tutor salvo com sucesso!')
+        router.push({ name: 'tutor' })
+      } catch (error) {
+        notifyError(error.message)
+      }
     }
-
-    router.push({ name: 'tutor' })
-  } catch (error) {
-    notifyError(error.message)
-  }
-}
-
 
     const handleGetTutor = async (id) => {
       try {
         tutor = await getById(table, id)
-        form.value = tutor
+        form.value = {
+          ...tutor,
+          rua: tutor.rua || '',
+          numero: tutor.numero || '',
+          bairro: tutor.bairro || '',
+          cidade: tutor.cidade || '',
+          estado: tutor.estado || '',
+          cep: tutor.cep || ''
+        }
       } catch (error) {
         notifyError(error.message)
       }
