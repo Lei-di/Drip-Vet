@@ -79,12 +79,20 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue' // Importar onMounted
 import { useRouter, useRoute } from 'vue-router'
 import useAuthUser from 'src/composables/UseAuthUser'
+import useApi from 'src/composables/UseApi' // Importar useApi
 
 const router = useRouter()
 const route = useRoute()
 const { logout } = useAuthUser()
+const { getBrand } = useApi() // Usar a função
+
+// Adicionar este bloco
+onMounted(() => {
+  getBrand()
+})
 
 function goTo(page) {
   router.push(`/app/${page}`)
@@ -92,7 +100,6 @@ function goTo(page) {
 
 function goToHome() {
   if (route.path === '/app/home') {
-    // Já está na Home, apenas recarregar a página
     router.go(0)
   } else {
     router.push('/app/home')

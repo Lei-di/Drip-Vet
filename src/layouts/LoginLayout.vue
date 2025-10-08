@@ -2,8 +2,7 @@
   <q-layout view="lHh Lpr lFf">
     <q-header style="background-color: #357a44;">
       <q-toolbar>
-        <!-- Título removido daqui -->
-      </q-toolbar>
+        </q-toolbar>
     </q-header>
     <q-page-container>
       <router-view />
@@ -12,18 +11,10 @@
 </template>
 
 <script>
-import { defineComponent, onMounted } from 'vue'
-import useApi from 'src/composables/UseApi'
+import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'LoginLayout',
-
-  setup () {
-    const { getBrand } = useApi()
-    onMounted(() => {
-      getBrand()
-    })
-    return {}
-  }
+  name: 'LoginLayout'
+  // A função setup foi removida daqui
 })
 </script>
