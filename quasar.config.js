@@ -1,5 +1,4 @@
-// Configuration for your app
-// https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
+// quasar.config.js
 
 import { defineConfig } from '#q-app/wrappers'
 
@@ -20,12 +19,10 @@ export default defineConfig((/* ctx */) => {
 
       vueRouterMode: 'hash',
 
-      // >>> ADICIONADO PARA SUPABASE <<<
       env: {
         SUPABASE_URL: process.env.SUPABASE_URL,
         SUPABASE_KEY: process.env.SUPABASE_KEY
       },
-      // >>> FIM DA ALTERAÇÃO <<<
 
       vitePlugins: [
         [
@@ -48,7 +45,12 @@ export default defineConfig((/* ctx */) => {
 
     framework: {
       config: {},
-      plugins: [],
+      // A CORREÇÃO ESTÁ AQUI:
+      plugins: [
+        'Notify',
+        'Dialog',
+        'Loading'
+      ],
     },
 
     animations: [],
