@@ -1,3 +1,5 @@
+// src/composables/UseApi.js
+
 import useSupabase from 'src/boot/supabase'
 import useAuthUser from './UseAuthUser'
 import { v4 as uuidv4 } from 'uuid'
@@ -21,11 +23,12 @@ export default function useApi () {
   const { setBrand } = useBrand()
   const $q = useQuasar()
 
-  const list = async (table, userId) => {
+  // --- FUNÇÃO LIST CORRIGIDA ---
+  // Agora ela não exige mais o user_id e busca todos os registros da tabela.
+  const list = async (table) => {
     const { data, error } = await supabase
       .from(table)
       .select('*')
-      .eq('user_id', userId)
     if (error) throw error
     return data
   }
@@ -52,22 +55,19 @@ export default function useApi () {
     return data
   }
 
-  // --- A CORREÇÃO ESTÁ AQUI ---
+  // --- FUNÇÃO POST CORRIGIDA ---
+  // Removemos a adição automática do user_id.
   const post = async (table, form) => {
     const { data, error } = await supabase
       .from(table)
-      .insert([
-        {
-          ...form,
-          user_id: user.value.id
-        }
-      ])
-      .select() // ESTA LINHA FOI ADICIONADA
+      .insert(form) // Insere diretamente o formulário
+      .select()
 
-    if (error) throw error
+    if (error) {
+      throw error
+    }
     return data
   }
-  // --- FIM DA CORREÇÃO ---
 
   const update = async (table, form) => {
     if (!form.id) {
@@ -77,7 +77,11 @@ export default function useApi () {
       .from(table)
       .update({ ...form })
       .eq('id', form.id)
-    if (error) throw error
+      .select()
+
+    if (error) {
+      throw error
+    }
     return data
   }
 
@@ -92,15 +96,15 @@ export default function useApi () {
 
   const uploadImg = async (file, storage) => {
     const fileName = uuidv4()
-    const { error } = supabase
+    const { error } = await supabase
       .storage
       .from(storage)
       .upload(fileName, file, {
         cacheControl: '3600',
         upsert: false
       })
-    const publicUrl = await getUrlPublic(fileName, storage)
     if (error) throw error
+    const publicUrl = await getUrlPublic(fileName, storage)
     return publicUrl
   }
 

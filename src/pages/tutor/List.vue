@@ -1,3 +1,5 @@
+// src/pages/tutor/List.vue
+
 <template>
   <q-page padding>
     <div class="row">
@@ -59,52 +61,41 @@ import useApi from 'src/composables/UseApi'
 import useNotify from 'src/composables/UseNotify'
 import { useRouter } from 'vue-router'
 import { columnsTutor } from './table'
-import useSupabase from 'src/boot/supabase'
 
 export default defineComponent({
   name: 'PageTutorList',
   setup () {
-    const { supabase } = useSupabase()
     const tutores = ref([])
     const loading = ref(true)
     const router = useRouter()
     const table = 'tutores'
 
-    const { remove } = useApi()
+    const { list, remove } = useApi()
     const { notifyError, notifySuccess, confirmDialog } = useNotify()
 
     const handleListTutor = async () => {
-      loading.value = true
       try {
-        const { data, error } = await supabase
-          .from('tutores')
-          .select('*')
-        
-        if (error) {
-          notifyError(error.message)
-        } else {
-          tutores.value = data || []
-        }
+        loading.value = true
+        tutores.value = await list(table) // Corrigido: não precisa mais do user.id
+        loading.value = false
       } catch (error) {
         notifyError(error.message)
-      } finally {
-        loading.value = false
       }
     }
 
-    const handleEdit = (tutores) => {
-      router.push({ name: 'form-tutor', params: { id: tutores.id } })
+    const handleEdit = (tutor) => {
+      router.push({ name: 'form-tutor', params: { id: tutor.id } })
     }
 
-    const handleRemoveTutor = async (tutores) => {
+    const handleRemoveTutor = async (tutor) => {
       try {
         const confirmed = await confirmDialog(
           'Confirmação',
-          `Deseja realmente remover ${tutores.nome} ?`
+          `Deseja realmente remover ${tutor.nome} ?`
         )
         
         if (confirmed) {
-          await remove(table, tutores.id)
+          await remove(table, tutor.id)
           notifySuccess('Tutor removido com sucesso!')
           handleListTutor()
         }

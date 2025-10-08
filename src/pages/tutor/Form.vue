@@ -1,4 +1,6 @@
-00<template>
+// src/pages/tutor/Form.vue
+
+<template>
   <q-page padding>
     <div class="row justify-center">
       <div class="col-12 text-center">
@@ -109,7 +111,6 @@ import useNotify from 'src/composables/UseNotify'
 export default defineComponent({
   name: 'PageFormTutor',
   setup () {
-    const table = 'tutores'
     const router = useRouter()
     const route = useRoute()
     const { post, getById, update } = useApi()
@@ -117,7 +118,6 @@ export default defineComponent({
 
     const isUpdate = computed(() => route.params.id)
 
-    let tutor = {}
     const form = ref({
       nome: '',
       cpf: '',
@@ -141,50 +141,42 @@ export default defineComponent({
     const handleSubmit = async () => {
       try {
         if (isUpdate.value) {
-          // Atualiza dados do tutor
           await update('tutores', form.value)
-
-          // Se tem endereço, atualiza
-          if (form.value.endereco_id) {
-            await update('endereco', {
-              id: form.value.endereco_id,
-              rua: form.value.rua,
-              numero: form.value.numero,
-              bairro: form.value.bairro,
-              cidade: form.value.cidade,
-              estado: form.value.estado,
-              cep: form.value.cep
-            })
-          }
-
           notifySuccess('Tutor atualizado com sucesso!')
+          router.push({ name: 'tutor' })
         } else {
-          // Cadastra o tutor
-          const usuario = await post('tutores', {
+          // 1. Prepara os dados do tutor (sem user_id)
+          const tutorData = {
             nome: form.value.nome,
             cpf: form.value.cpf,
             whatsapp: form.value.whatsapp.replace(/\D/g, ''),
             email: form.value.email,
             observacoes: form.value.observacoes
-          })
+          }
 
-          const usuarioId = usuario[0]?.id
+          const novoTutor = await post('tutores', tutorData)
 
-          // Cadastra o endereço vinculado ao novo tutor
-          await post('endereco', {
-            rua: form.value.rua,
-            numero: form.value.numero,
-            bairro: form.value.bairro,
-            cidade: form.value.cidade,
-            estado: form.value.estado,
-            cep: form.value.cep,
-            tutor: usuarioId
-          })
+          if (novoTutor && novoTutor.length > 0) {
+            const tutorId = novoTutor[0].id
 
-          notifySuccess('Tutor salvo com sucesso!')
+            const enderecoData = {
+              rua: form.value.rua,
+              numero: form.value.numero,
+              bairro: form.value.bairro,
+              cidade: form.value.cidade,
+              estado: form.value.estado,
+              cep: form.value.cep,
+              tutor_id: tutorId
+            }
+
+            await post('endereco', enderecoData)
+
+            notifySuccess('Tutor salvo com sucesso!')
+            router.push({ name: 'tutor' })
+          } else {
+            throw new Error('Não foi possível criar o novo tutor.')
+          }
         }
-
-        router.push({ name: 'tutor' })
       } catch (error) {
         notifyError(error.message)
       }
@@ -192,16 +184,7 @@ export default defineComponent({
 
     const handleGetTutor = async (id) => {
       try {
-        tutor = await getById(table, id)
-        form.value = {
-          ...tutor,
-          rua: tutor.rua || '',
-          numero: tutor.numero || '',
-          bairro: tutor.bairro || '',
-          cidade: tutor.cidade || '',
-          estado: tutor.estado || '',
-          cep: tutor.cep || ''
-        }
+        form.value = await getById('tutores', id)
       } catch (error) {
         notifyError(error.message)
       }
