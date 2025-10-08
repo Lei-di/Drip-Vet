@@ -30,10 +30,15 @@ const routes = [
       { path: 'usuarios', name: 'usuarios', component: () => import('pages/usuarios/List.vue') },
       { path: 'form-usuarios/:id?', name: 'form-usuarios', component: () => import('pages/usuarios/Form.vue') },
       { path: 'form-config/:id?', name: 'form-config', component: () => import('pages/config/Form.vue') },
-      { path: 'consultas', name: 'consultas', component: () => import('pages/Consultas.vue') },
-      { path: 'notificacoes', name: 'notificacoes', component: () => import('pages/Notificacoes.vue') },
-      { path: 'campanhas', name: 'campanhas', component: () => import('pages/Campanhas.vue') },
-      { path: 'vacinacao', name: 'vacinacao', component: () => import('pages/Vacinacao.vue') }
+      // Novas rotas
+      { path: 'consultas', name: 'consultas', component: () => import('pages/consultas/List.vue') },
+      { path: 'form-consulta/:id?', name: 'form-consulta', component: () => import('pages/consultas/Form.vue') },
+      { path: 'notificacoes', name: 'notificacoes', component: () => import('pages/notificacoes/List.vue') },
+      { path: 'form-notificacao/:id?', name: 'form-notificacao', component: () => import('pages/notificacoes/Form.vue') },
+      { path: 'campanhas', name: 'campanhas', component: () => import('pages/campanhas/List.vue') },
+      { path: 'form-campanha/:id?', name: 'form-campanha', component: () => import('pages/campanhas/Form.vue') },
+      { path: 'vacinacao', name: 'vacinacao', component: () => import('pages/vacinacao/List.vue') },
+      { path: 'form-vacinacao/:id?', name: 'form-vacinacao', component: () => import('pages/vacinacao/Form.vue') }
     ],
     meta: { requiresAuth: true }
   },
