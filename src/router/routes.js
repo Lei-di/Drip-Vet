@@ -29,7 +29,11 @@ const routes = [
       { path: 'form-agendamento/:id?', name: 'form-agendamento', component: () => import('pages/agendamento/Form.vue') },
       { path: 'usuarios', name: 'usuarios', component: () => import('pages/usuarios/List.vue') },
       { path: 'form-usuarios/:id?', name: 'form-usuarios', component: () => import('pages/usuarios/Form.vue') },
-      { path: 'form-config/:id?', name: 'form-config', component: () => import('pages/config/Form.vue') }
+      { path: 'form-config/:id?', name: 'form-config', component: () => import('pages/config/Form.vue') },
+      { path: 'consultas', name: 'consultas', component: () => import('pages/Consultas.vue') },
+      { path: 'notificacoes', name: 'notificacoes', component: () => import('pages/Notificacoes.vue') },
+      { path: 'campanhas', name: 'campanhas', component: () => import('pages/Campanhas.vue') },
+      { path: 'vacinacao', name: 'vacinacao', component: () => import('pages/Vacinacao.vue') }
     ],
     meta: { requiresAuth: true }
   },

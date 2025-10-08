@@ -32,8 +32,8 @@
           <q-btn
             flat
             label="Consultas"
-            disabled
-            class="tab"
+            @click="goTo('consultas')"
+            :class="[{ 'active-tab': isActive('consultas') }, 'tab']"
           />
           <q-btn
             flat
@@ -44,20 +44,20 @@
           <q-btn
             flat
             label="Notificações"
-            disabled
-            class="tab"
+            @click="goTo('notificacoes')"
+            :class="[{ 'active-tab': isActive('notificacoes') }, 'tab']"
           />
           <q-btn
             flat
             label="Campanhas"
-            disabled
-            class="tab"
+            @click="goTo('campanhas')"
+            :class="[{ 'active-tab': isActive('campanhas') }, 'tab']"
           />
           <q-btn
             flat
             label="Vacinação"
-            disabled
-            class="tab"
+            @click="goTo('vacinacao')"
+            :class="[{ 'active-tab': isActive('vacinacao') }, 'tab']"
           />
 
           <q-btn
