@@ -21,10 +21,11 @@ export default function useApi () {
   const { setBrand } = useBrand()
   const $q = useQuasar()
 
-  const list = async (table) => {
+  const list = async (table, userId) => {
     const { data, error } = await supabase
       .from(table)
       .select('*')
+      .eq('user_id', userId)
     if (error) throw error
     return data
   }
@@ -48,50 +49,30 @@ export default function useApi () {
       .eq('id', id)
       .single()
     if (error) throw error
-
-    // Se for a tabela tutores, buscar endereço separadamente
-    if (table === 'tutores' && data.endereco) {
-      try {
-        const { data: enderecoData } = await supabase
-          .from('endereco')
-          .select('*')
-          .eq('id', data.endereco)
-          .single()
-
-        if (enderecoData) {
-          return {
-            ...data,
-            endereco_id: enderecoData.id,
-            rua: enderecoData.rua,
-            numero: enderecoData.numero,
-            bairro: enderecoData.bairro,
-            cidade: enderecoData.cidade,
-            estado: enderecoData.estado,
-            cep: enderecoData.cep
-          }
-        }
-      } catch (enderecoError) {
-        console.warn('Erro ao buscar endereço:', enderecoError)
-      }
-    }
-
     return data
   }
 
+  // --- A CORREÇÃO ESTÁ AQUI ---
   const post = async (table, form) => {
     const { data, error } = await supabase
       .from(table)
-      .insert([form])
+      .insert([
+        {
+          ...form,
+          user_id: user.value.id
+        }
+      ])
+      .select() // ESTA LINHA FOI ADICIONADA
+
     if (error) throw error
     return data
   }
+  // --- FIM DA CORREÇÃO ---
 
   const update = async (table, form) => {
-    // Verificar se o ID existe e é válido
-    if (!form.id || form.id === 'null' || form.id === null) {
+    if (!form.id) {
       throw new Error('ID inválido para atualização')
     }
-
     const { data, error } = await supabase
       .from(table)
       .update({ ...form })
@@ -124,31 +105,34 @@ export default function useApi () {
   }
 
   const getUrlPublic = async (fileName, storage) => {
-    const { publicURL, error } = supabase
+    const { data, error } = supabase
       .storage
       .from(storage)
       .getPublicUrl(fileName)
     if (error) throw error
-    return publicURL
+    return data.publicUrl
   }
 
   const getBrand = async () => {
     const id = route.params.id || user?.value?.id
     if (id) {
-      $q.loading.show({
-        backgroundColor: 'dark'
-      })
-      const { data, error } = await supabase
-        .from('config')
-        .select('*')
-        .eq('user_id', id)
-      if (error) throw error
-      if (data.length > 0) {
-        brand.value = data[0]
-        setBrand(brand.value.primary, brand.value.secondary)
+      $q.loading.show({ backgroundColor: 'dark' })
+      try {
+        const { data, error } = await supabase
+          .from('config')
+          .select('*')
+          .eq('user_id', id)
+        if (error) throw error
+        if (data.length > 0) {
+          brand.value = data[0]
+          setBrand(brand.value.primary, brand.value.secondary)
+        }
+        return brand
+      } catch (error) {
+        console.error('Erro ao buscar a marca:', error.message)
+      } finally {
+        $q.loading.hide()
       }
-      $q.loading.hide()
-      return brand
     }
   }
 

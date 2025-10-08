@@ -19,12 +19,19 @@ export default function useNotify () {
     })
   }
 
+  // ESTA É A VERSÃO CORRIGIDA DA FUNÇÃO
   const confirmDialog = (title, message) => {
-    return $q.dialog({
-      title: title,
-      message: message,
-      cancel: true,
-      persistent: true
+    return new Promise((resolve) => {
+      $q.dialog({
+        title: title,
+        message: message,
+        cancel: true,
+        persistent: true
+      }).onOk(() => {
+        resolve(true) // Retorna 'true' se o usuário clicar em "OK"
+      }).onCancel(() => {
+        resolve(false) // Retorna 'false' se o usuário clicar em "Cancelar"
+      })
     })
   }
 
