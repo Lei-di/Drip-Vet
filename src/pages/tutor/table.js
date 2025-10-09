@@ -4,7 +4,6 @@ const columnsTutor = [
   { name: 'whatsapp', align: 'left', label: 'WhatsApp', field: 'whatsapp', sortable: true },
   { name: 'email', align: 'left', label: 'Email', field: 'email', sortable: true },
   { name: 'observacoes', align: 'left', label: 'Observações', field: 'observacoes', sortable: true },
-  { name: 'endereco', align: 'left', label: 'Endereço', field: 'endereco', sortable: true },
   { name: 'actions', align: 'right', label: 'Ações', field: 'actions', sortable: false }
 ]
 
