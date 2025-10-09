@@ -41,12 +41,6 @@
           ]"
         />
 
-        <q-editor
-          label="Observações"
-          v-model="form.observacoes"
-          min-height="5rem"
-        />
-
         <q-input
           label="Rua"
           v-model="form.rua"
@@ -78,6 +72,12 @@
           v-model="form.cep"
           mask="#####-###"
           hint="Ex: 79800-123"
+        />
+
+        <q-editor
+          label="Observações"
+          v-model="form.observacoes"
+          min-height="5rem"
         />
 
         <q-btn
@@ -141,7 +141,6 @@ export default defineComponent({
     const handleSubmit = async () => {
       try {
         if (isUpdate.value) {
-          // 1. Prepara os dados do tutor
           const tutorData = {
             id: isUpdate.value,
             nome: form.value.nome,
@@ -152,9 +151,8 @@ export default defineComponent({
           }
           await update('tutores', tutorData)
 
-          // 2. Prepara os dados do endereço
           const enderecoData = {
-            id: isUpdate.value, // O ID do endereço é o mesmo do tutor
+            id: isUpdate.value,
             rua: form.value.rua,
             numero: form.value.numero,
             bairro: form.value.bairro,
@@ -167,7 +165,7 @@ export default defineComponent({
           notifySuccess('Tutor atualizado com sucesso!')
           router.push({ name: 'tutor' })
         } else {
-          // Lógica para criar novo tutor
+          // Lógica para criar novo tutor (respeitando o 'id')
           const tutorData = {
             nome: form.value.nome,
             cpf: form.value.cpf,
@@ -187,7 +185,7 @@ export default defineComponent({
               cidade: form.value.cidade,
               estado: form.value.estado,
               cep: form.value.cep,
-              id: tutorId // A coluna no Supabase se chama 'id'
+              id: tutorId 
             }
             await post('endereco', enderecoData)
             notifySuccess('Tutor salvo com sucesso!')
