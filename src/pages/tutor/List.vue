@@ -22,6 +22,7 @@
             icon="mdi-plus"
             dense
             :to="{ name: 'form-tutor' }"
+            class="flex-center"
           />
         </template>
         <template v-slot:body-cell-actions="props">
