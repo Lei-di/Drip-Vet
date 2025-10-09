@@ -9,6 +9,7 @@ export default defineConfig((/* ctx */) => {
     extras: [
       'roboto-font',
       'material-icons',
+      'mdi-v7' 
     ],
 
     build: {
@@ -45,7 +46,6 @@ export default defineConfig((/* ctx */) => {
 
     framework: {
       config: {},
-      // A CORREÇÃO ESTÁ AQUI:
       plugins: [
         'Notify',
         'Dialog',
