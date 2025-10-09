@@ -23,8 +23,6 @@ export default function useApi () {
   const { setBrand } = useBrand()
   const $q = useQuasar()
 
-  // --- FUNÇÃO LIST CORRIGIDA ---
-  // Agora ela não exige mais o user_id e busca todos os registros da tabela.
   const list = async (table) => {
     const { data, error } = await supabase
       .from(table)
@@ -45,7 +43,35 @@ export default function useApi () {
     }
   }
 
+  // --- FUNÇÃO getById ATUALIZADA ---
   const getById = async (table, id) => {
+    // Se a tabela for 'tutores', busca também o endereço correspondente
+    if (table === 'tutores') {
+      const { data: tutorData, error: tutorError } = await supabase
+        .from('tutores')
+        .select('*')
+        .eq('id', id)
+        .single()
+      if (tutorError) throw tutorError
+
+      // Busca o endereço usando o id do tutor como chave estrangeira
+      const { data: enderecoData, error: enderecoError } = await supabase
+        .from('endereco')
+        .select('*')
+        .eq('tutor_id', id)
+        .single()
+
+      // Se houver erro (ex: endereço não cadastrado), não quebra a aplicação
+      if (enderecoError) {
+        console.warn(`Endereço não encontrado para o tutor com id: ${id}`)
+        return tutorData // Retorna apenas os dados do tutor
+      }
+      
+      // Retorna um objeto único com os dados do tutor e do endereço mesclados
+      return { ...tutorData, ...enderecoData }
+    }
+
+    // Comportamento padrão para as outras tabelas
     const { data, error } = await supabase
       .from(table)
       .select('*')
@@ -55,12 +81,10 @@ export default function useApi () {
     return data
   }
 
-  // --- FUNÇÃO POST CORRIGIDA ---
-  // Removemos a adição automática do user_id.
   const post = async (table, form) => {
     const { data, error } = await supabase
       .from(table)
-      .insert(form) // Insere diretamente o formulário
+      .insert(form)
       .select()
 
     if (error) {
@@ -69,14 +93,14 @@ export default function useApi () {
     return data
   }
 
-  const update = async (table, form) => {
-    if (!form.id) {
-      throw new Error('ID inválido para atualização')
-    }
+  // --- FUNÇÃO update ATUALIZADA ---
+  // Agora ela permite especificar qual coluna usar para a atualização
+  const update = async (table, form, matchColumn = 'id', matchValue) => {
+    const valueToMatch = matchValue || form.id
     const { data, error } = await supabase
       .from(table)
-      .update({ ...form })
-      .eq('id', form.id)
+      .update(form)
+      .eq(matchColumn, valueToMatch)
       .select()
 
     if (error) {
@@ -84,6 +108,7 @@ export default function useApi () {
     }
     return data
   }
+
 
   const remove = async (table, id) => {
     const { data, error } = await supabase

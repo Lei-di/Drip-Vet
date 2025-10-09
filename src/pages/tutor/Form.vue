@@ -141,11 +141,31 @@ export default defineComponent({
     const handleSubmit = async () => {
       try {
         if (isUpdate.value) {
-          await update('tutores', form.value)
+          // Separa os dados para cada tabela
+          const tutorData = {
+            nome: form.value.nome,
+            cpf: form.value.cpf,
+            whatsapp: form.value.whatsapp.replace(/\D/g, ''),
+            email: form.value.email,
+            observacoes: form.value.observacoes
+          }
+          const enderecoData = {
+            rua: form.value.rua,
+            numero: form.value.numero,
+            bairro: form.value.bairro,
+            cidade: form.value.cidade,
+            estado: form.value.estado,
+            cep: form.value.cep
+          }
+          
+          // Atualiza as duas tabelas separadamente
+          await update('tutores', tutorData, 'id', isUpdate.value)
+          await update('endereco', enderecoData, 'tutor_id', isUpdate.value)
+
           notifySuccess('Tutor atualizado com sucesso!')
           router.push({ name: 'tutor' })
         } else {
-          // 1. Prepara os dados do tutor (sem user_id)
+          // Lógica para criar novo tutor
           const tutorData = {
             nome: form.value.nome,
             cpf: form.value.cpf,
@@ -158,7 +178,6 @@ export default defineComponent({
 
           if (novoTutor && novoTutor.length > 0) {
             const tutorId = novoTutor[0].id
-
             const enderecoData = {
               rua: form.value.rua,
               numero: form.value.numero,
@@ -166,13 +185,10 @@ export default defineComponent({
               cidade: form.value.cidade,
               estado: form.value.estado,
               cep: form.value.cep,
-              id: tutorId // <-- CORRIGIDO AQUI
+              id: tutorId
             }
-            console.log(enderecoData)
-
             await post('endereco', enderecoData)
-
-            notifySuccess('Tutor criado com sucesso!')
+            notifySuccess('Tutor salvo com sucesso!')
             router.push({ name: 'tutor' })
           } else {
             throw new Error('Não foi possível criar o novo tutor.')
@@ -185,7 +201,8 @@ export default defineComponent({
 
     const handleGetTutor = async (id) => {
       try {
-        form.value = await getById('tutores', id)
+        const response = await getById('tutores', id)
+        form.value = response
       } catch (error) {
         notifyError(error.message)
       }
