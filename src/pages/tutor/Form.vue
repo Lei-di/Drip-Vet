@@ -141,15 +141,20 @@ export default defineComponent({
     const handleSubmit = async () => {
       try {
         if (isUpdate.value) {
-          // Separa os dados para cada tabela
+          // 1. Prepara os dados do tutor
           const tutorData = {
+            id: isUpdate.value,
             nome: form.value.nome,
             cpf: form.value.cpf,
             whatsapp: form.value.whatsapp.replace(/\D/g, ''),
             email: form.value.email,
             observacoes: form.value.observacoes
           }
+          await update('tutores', tutorData)
+
+          // 2. Prepara os dados do endereço
           const enderecoData = {
+            id: isUpdate.value, // O ID do endereço é o mesmo do tutor
             rua: form.value.rua,
             numero: form.value.numero,
             bairro: form.value.bairro,
@@ -157,10 +162,7 @@ export default defineComponent({
             estado: form.value.estado,
             cep: form.value.cep
           }
-          
-          // Atualiza as duas tabelas separadamente
-          await update('tutores', tutorData, 'id', isUpdate.value)
-          await update('endereco', enderecoData, 'tutor_id', isUpdate.value)
+          await update('endereco', enderecoData)
 
           notifySuccess('Tutor atualizado com sucesso!')
           router.push({ name: 'tutor' })
@@ -185,7 +187,7 @@ export default defineComponent({
               cidade: form.value.cidade,
               estado: form.value.estado,
               cep: form.value.cep,
-              id: tutorId
+              id: tutorId // A coluna no Supabase se chama 'id'
             }
             await post('endereco', enderecoData)
             notifySuccess('Tutor salvo com sucesso!')

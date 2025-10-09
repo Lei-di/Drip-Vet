@@ -45,7 +45,6 @@ export default function useApi () {
 
   // --- FUNÇÃO getById ATUALIZADA ---
   const getById = async (table, id) => {
-    // Se a tabela for 'tutores', busca também o endereço correspondente
     if (table === 'tutores') {
       const { data: tutorData, error: tutorError } = await supabase
         .from('tutores')
@@ -54,24 +53,21 @@ export default function useApi () {
         .single()
       if (tutorError) throw tutorError
 
-      // Busca o endereço usando o id do tutor como chave estrangeira
+      // Busca o endereço onde a coluna 'id' é a mesma do tutor
       const { data: enderecoData, error: enderecoError } = await supabase
         .from('endereco')
         .select('*')
-        .eq('tutor_id', id)
+        .eq('id', id)
         .single()
 
-      // Se houver erro (ex: endereço não cadastrado), não quebra a aplicação
       if (enderecoError) {
         console.warn(`Endereço não encontrado para o tutor com id: ${id}`)
-        return tutorData // Retorna apenas os dados do tutor
+        return tutorData 
       }
       
-      // Retorna um objeto único com os dados do tutor e do endereço mesclados
-      return { ...tutorData, ...enderecoData }
+      return { ...tutorData, ...enderecoData, id: tutorData.id } // Garante que o ID principal é o do tutor
     }
 
-    // Comportamento padrão para as outras tabelas
     const { data, error } = await supabase
       .from(table)
       .select('*')
@@ -93,14 +89,12 @@ export default function useApi () {
     return data
   }
 
-  // --- FUNÇÃO update ATUALIZADA ---
-  // Agora ela permite especificar qual coluna usar para a atualização
-  const update = async (table, form, matchColumn = 'id', matchValue) => {
-    const valueToMatch = matchValue || form.id
+  // --- FUNÇÃO update ATUALIZADA E SIMPLIFICADA ---
+  const update = async (table, form) => {
     const { data, error } = await supabase
       .from(table)
       .update(form)
-      .eq(matchColumn, valueToMatch)
+      .eq('id', form.id)
       .select()
 
     if (error) {
@@ -108,7 +102,6 @@ export default function useApi () {
     }
     return data
   }
-
 
   const remove = async (table, id) => {
     const { data, error } = await supabase
