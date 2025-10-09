@@ -166,7 +166,7 @@ export default defineComponent({
               cidade: form.value.cidade,
               estado: form.value.estado,
               cep: form.value.cep,
-              tutor_id: tutorId
+              id_tutor: tutorId // <-- CORRIGIDO AQUI
             }
 
             await post('endereco', enderecoData)
