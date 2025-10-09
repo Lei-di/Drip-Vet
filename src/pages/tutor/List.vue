@@ -19,8 +19,6 @@
             v-if="$q.platform.is.desktop"
             label="Novo"
             color="primary"
-            icon="mdi-plus"
-            dense
             :to="{ name: 'form-tutor' }"
             class="flex-center"
           />
