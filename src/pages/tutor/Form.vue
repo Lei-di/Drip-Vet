@@ -166,12 +166,13 @@ export default defineComponent({
               cidade: form.value.cidade,
               estado: form.value.estado,
               cep: form.value.cep,
-              id_tutor: tutorId // <-- CORRIGIDO AQUI
+              id: tutorId // <-- CORRIGIDO AQUI
             }
+            console.log(enderecoData)
 
             await post('endereco', enderecoData)
 
-            notifySuccess('Tutor salvo com sucesso!')
+            notifySuccess('Tutor criado com sucesso!')
             router.push({ name: 'tutor' })
           } else {
             throw new Error('Não foi possível criar o novo tutor.')
