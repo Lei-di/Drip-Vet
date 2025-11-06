@@ -78,10 +78,18 @@ export default defineComponent({
     const handleListUsuarios = async () => {
       try {
         loading.value = true
-        usuario.value = await list(table, user.value.id)
+        // Verifica se o usuário está logado antes de buscar
+        if (!user.value || !user.value.id) {
+          console.warn('Usuário não está logado')
+          usuario.value = []
+          loading.value = false
+          return
+        }
+        usuario.value = await list(table)
         loading.value = false
       } catch (error) {
         notifyError(error.message)
+        loading.value = false
       }
     }
 

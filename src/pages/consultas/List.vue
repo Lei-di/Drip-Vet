@@ -77,10 +77,18 @@ export default defineComponent({
     const handleListConsultas = async () => { // Corrigido aqui
       try {
         loading.value = true
-        consultas.value = await list(table, user.value.id) // Corrigido aqui
+        // Verifica se o usuário está logado antes de buscar
+        if (!user.value || !user.value.id) {
+          console.warn('Usuário não está logado')
+          consultas.value = []
+          loading.value = false
+          return
+        }
+        consultas.value = await list(table)
         loading.value = false
       } catch (error) {
         notifyError(error.message)
+        loading.value = false
       }
     }
 

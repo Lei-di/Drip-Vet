@@ -25,6 +25,10 @@ supabase.auth.onAuthStateChange((event, session) => {
   user.value = session?.user || null
 })
 
+// Exporta como função default para uso como composable
 export default function useSupabase() {
   return { supabase }
 }
+
+// Exporta também o cliente diretamente para compatibilidade
+export { supabase }
