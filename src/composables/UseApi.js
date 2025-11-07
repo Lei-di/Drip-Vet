@@ -1,12 +1,10 @@
-// src/composables/UseApi.js
-
 import useSupabase from 'src/boot/supabase'
 import useAuthUser from './UseAuthUser'
 import { v4 as uuidv4 } from 'uuid'
 import { useRoute } from 'vue-router'
 import useBrand from 'src/composables/UseBrand'
 import { ref } from 'vue'
-import { useQuasar } from 'quasar'
+// REMOVIDO: import { useQuasar } from 'quasar'
 
 const brand = ref({
   primary: '',
@@ -21,7 +19,7 @@ export default function useApi () {
   const { user } = useAuthUser()
   const route = useRoute()
   const { setBrand } = useBrand()
-  const $q = useQuasar()
+  // REMOVIDO: const $q = useQuasar()
 
   const list = async (table) => {
     const { data, error } = await supabase
@@ -35,7 +33,7 @@ export default function useApi () {
     const { data, error, count } = await supabase
       .from(table)
       .select('*', { count: 'exact' })
-      .eq('user_id', userId)
+      .eq('user', userId)
     if (error) throw error
     return {
       data,
@@ -43,7 +41,6 @@ export default function useApi () {
     }
   }
 
-  // --- FUNÇÃO getById ATUALIZADA ---
   const getById = async (table, id) => {
     if (table === 'tutores') {
       const { data: tutorData, error: tutorError } = await supabase
@@ -53,7 +50,6 @@ export default function useApi () {
         .single()
       if (tutorError) throw tutorError
 
-      // Busca o endereço onde a coluna 'id' é a mesma do tutor
       const { data: enderecoData, error: enderecoError } = await supabase
         .from('endereco')
         .select('*')
@@ -61,11 +57,9 @@ export default function useApi () {
         .single()
 
       if (enderecoError) {
-        console.warn(`Endereço não encontrado para o tutor com id: ${id}`)
-        return tutorData 
+        return tutorData
       }
-      
-      return { ...tutorData, ...enderecoData, id: tutorData.id } // Garante que o ID principal é o do tutor
+      return { ...tutorData, ...enderecoData, id: tutorData.id }
     }
 
     const { data, error } = await supabase
@@ -78,18 +72,23 @@ export default function useApi () {
   }
 
   const post = async (table, form) => {
+    // Garante que o usuário está logado antes de tentar salvar
+    if (!user.value?.id) {
+      throw new Error('Usuário não autenticado. Faça login novamente.')
+    }
+
     const { data, error } = await supabase
       .from(table)
-      .insert(form)
+      .insert({
+        ...form,
+        user: user.value.id
+      })
       .select()
 
-    if (error) {
-      throw error
-    }
+    if (error) throw error
     return data
   }
 
-  // --- FUNÇÃO update ATUALIZADA E SIMPLIFICADA ---
   const update = async (table, form) => {
     const { data, error } = await supabase
       .from(table)
@@ -97,9 +96,7 @@ export default function useApi () {
       .eq('id', form.id)
       .select()
 
-    if (error) {
-      throw error
-    }
+    if (error) throw error
     return data
   }
 
@@ -138,7 +135,6 @@ export default function useApi () {
   const getBrand = async () => {
     const id = route.params.id || user?.value?.id
     if (id) {
-      $q.loading.show({ backgroundColor: 'dark' })
       try {
         const { data, error } = await supabase
           .from('config')
@@ -150,10 +146,8 @@ export default function useApi () {
           setBrand(brand.value.primary, brand.value.secondary)
         }
         return brand
-      } catch (error) {
-        console.error('Erro ao buscar a marca:', error.message)
-      } finally {
-        $q.loading.hide()
+      } catch {
+        // Erro silenciado intencionalmente
       }
     }
   }

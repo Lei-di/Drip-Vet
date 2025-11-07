@@ -8,13 +8,19 @@
       </div>
       <q-form class="col-md-7 col-xs-12 col-sm-12 q-gutter-y-md" @submit.prevent="handleSubmit">
 
-        <q-input
+        <q-file
+          outlined
+          v-model="img"
           label="Foto de perfil"
-          stack-label
-          v-model="imgUrl"
-          type="file"
           accept="image/*"
-        />
+        >
+          <template v-slot:prepend>
+            <q-icon name="attach_file" />
+          </template>
+          <template v-slot:append v-if="img">
+            <q-icon name="close" @click.stop="img = null" class="cursor-pointer" />
+          </template>
+        </q-file>
 
        <q-input
           label="Nome"
@@ -41,7 +47,21 @@
         <q-input
           label="Data de Nascimento"
           v-model="form.dataNasc"
-        />
+          mask="##/##/####"
+          placeholder="DD/MM/AAAA"
+        >
+          <template v-slot:append>
+            <q-icon name="event" class="cursor-pointer">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-date v-model="form.dataNasc" mask="DD/MM/YYYY">
+                  <div class="row items-center justify-end">
+                    <q-btn v-close-popup label="Fechar" color="primary" flat />
+                  </div>
+                </q-date>
+              </q-popup-proxy>
+            </q-icon>
+          </template>
+        </q-input>
 
         <q-input
           label="Idade"
@@ -53,6 +73,8 @@
           label="Peso"
           v-model="form.peso"
           type="number"
+          step="0.1"
+          suffix="kg"
         />
 
         <q-input
@@ -60,21 +82,19 @@
           v-model="form.cor"
         />
 
-        <q-input
-          label="Chip"
+        <q-select
+          label="Possui Chip?"
           v-model="form.chip"
-        />
-
-        <q-editor
-          label="Saúde"
-          v-model="form.saude"
-          min-height="5rem"
+          :options="optionsChip"
+          map-options
+          emit-value
         />
 
         <q-editor
           label="Observações"
           v-model="form.observacoes"
           min-height="5rem"
+          placeholder="Observações gerais sobre o pet"
         />
 
         <q-btn
@@ -104,6 +124,7 @@ import { defineComponent, ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import useApi from 'src/composables/UseApi'
 import useNotify from 'src/composables/UseNotify'
+import { date } from 'quasar'
 
 export default defineComponent({
   name: 'PageFormPets',
@@ -120,21 +141,24 @@ export default defineComponent({
     const form = ref({
       nome: '',
       observacoes: '',
-      saude: '',
       raca: '',
       sexo: '',
-      dataNasc:'',
-      cor:'',
+      dataNasc: '',
+      cor: '',
       chip: '',
-      idade: 0,
-      peso: '',
+      idade: null,
+      peso: null,
       tutor: '',
-      imgURL: ''
+      img_url: ''
     })
-    const img = ref([])
+    const img = ref(null)
+
+    const optionsChip = [
+      { label: 'Sim', value: 'Sim' },
+      { label: 'Não', value: 'Não' }
+    ]
 
     onMounted(() => {
-      // handleListPets()
       if (isUpdate.value) {
         handleGetPets(isUpdate.value)
       }
@@ -142,26 +166,48 @@ export default defineComponent({
 
     const handleSubmit = async () => {
       try {
-        if (img.value.length > 0) {
-          const img_url = await uploadImg(img.value[0], 'pets')
-          form.value.imgURL = img_url
+        if (img.value) {
+          const imgUrl = await uploadImg(img.value, 'pets')
+          form.value.img_url = imgUrl
         }
+
+        // Copia dados e remove campo 'saude' se existir
+        const dataParaEnvio = { ...form.value }
+        delete dataParaEnvio.saude
+
+        // Converte data BR (DD/MM/AAAA) para formato do banco (AAAA-MM-DD)
+        if (dataParaEnvio.dataNasc) {
+          const dataObjeto = date.extractDate(dataParaEnvio.dataNasc, 'DD/MM/YYYY')
+          if (dataObjeto) {
+             dataParaEnvio.dataNasc = date.formatDate(dataObjeto, 'YYYY-MM-DD')
+          }
+        }
+
         if (isUpdate.value) {
-          await update(table, form.value)
+          await update(table, dataParaEnvio)
           notifySuccess('PET atualizado com sucesso!')
         } else {
-          await post(table, form.value)
+          await post(table, dataParaEnvio)
           notifySuccess('PET salvo com sucesso!')
         }
-        router.push({ name: 'pets' })
+        router.push({ name: 'pet' })
       } catch (error) {
-        notifyError(error.message)
+        console.error(error)
+        if (error.message && error.message.includes('bucket not found')) {
+          notifyError('Erro: Bucket de imagens "pets" não encontrado no Supabase.')
+        } else {
+          notifyError(error.message)
+        }
       }
     }
 
     const handleGetPets = async (id) => {
       try {
         pet = await getById(table, id)
+        // Converte data do banco para formato BR ao editar
+        if (pet.dataNasc) {
+          pet.dataNasc = date.formatDate(pet.dataNasc, 'DD/MM/YYYY')
+        }
         form.value = pet
       } catch (error) {
         notifyError(error.message)
@@ -172,7 +218,8 @@ export default defineComponent({
       handleSubmit,
       form,
       isUpdate,
-      img
+      img,
+      optionsChip
     }
   }
 })
