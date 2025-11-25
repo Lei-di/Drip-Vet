@@ -79,17 +79,16 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue' // Importar onMounted
+import { onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import useAuthUser from 'src/composables/UseAuthUser'
-import useApi from 'src/composables/UseApi' // Importar useApi
+import useApi from 'src/composables/UseApi'
 
 const router = useRouter()
 const route = useRoute()
 const { logout } = useAuthUser()
-const { getBrand } = useApi() // Usar a função
+const { getBrand } = useApi()
 
-// Adicionar este bloco
 onMounted(() => {
   getBrand()
 })

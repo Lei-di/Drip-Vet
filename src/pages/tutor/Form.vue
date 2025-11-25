@@ -1,5 +1,3 @@
-// src/pages/tutor/Form.vue
-
 <template>
   <q-page padding>
     <div class="row justify-center">
@@ -141,6 +139,7 @@ export default defineComponent({
     const handleSubmit = async () => {
       try {
         if (isUpdate.value) {
+          // Atualiza dados do tutor
           const tutorData = {
             id: isUpdate.value,
             nome: form.value.nome,
@@ -151,21 +150,24 @@ export default defineComponent({
           }
           await update('tutores', tutorData)
 
-          const enderecoData = {
-            id: isUpdate.value,
-            rua: form.value.rua,
-            numero: form.value.numero,
-            bairro: form.value.bairro,
-            cidade: form.value.cidade,
-            estado: form.value.estado,
-            cep: form.value.cep
+          // Atualiza endereço (assumindo que temos o ID do endereço pelo getById)
+          if (form.value.endereco_id) {
+             const enderecoData = {
+              id: form.value.endereco_id,
+              rua: form.value.rua,
+              numero: form.value.numero,
+              bairro: form.value.bairro,
+              cidade: form.value.cidade,
+              estado: form.value.estado,
+              cep: form.value.cep
+            }
+            await update('endereco', enderecoData)
           }
-          await update('endereco', enderecoData)
 
           notifySuccess('Tutor atualizado com sucesso!')
           router.push({ name: 'tutor' })
         } else {
-          // Lógica para criar novo tutor (respeitando o 'id')
+          // Cadastra novo tutor
           const tutorData = {
             nome: form.value.nome,
             cpf: form.value.cpf,
@@ -185,7 +187,7 @@ export default defineComponent({
               cidade: form.value.cidade,
               estado: form.value.estado,
               cep: form.value.cep,
-              id: tutorId 
+              usuario_id: tutorId // Note que aqui usa 'usuario_id' para vincular ao tutor
             }
             await post('endereco', enderecoData)
             notifySuccess('Tutor salvo com sucesso!')

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { useRoute } from 'vue-router'
 import useBrand from 'src/composables/UseBrand'
 import { ref } from 'vue'
-// REMOVIDO: import { useQuasar } from 'quasar'
+import { useQuasar } from 'quasar'
 
 const brand = ref({
   primary: '',
@@ -19,7 +19,7 @@ export default function useApi () {
   const { user } = useAuthUser()
   const route = useRoute()
   const { setBrand } = useBrand()
-  // REMOVIDO: const $q = useQuasar()
+  const $q = useQuasar()
 
   const list = async (table) => {
     const { data, error } = await supabase
@@ -33,7 +33,7 @@ export default function useApi () {
     const { data, error, count } = await supabase
       .from(table)
       .select('*', { count: 'exact' })
-      .eq('user', userId)
+      .eq('user_id', userId)
     if (error) throw error
     return {
       data,
@@ -42,26 +42,29 @@ export default function useApi () {
   }
 
   const getById = async (table, id) => {
+    // Lógica específica para trazer endereço junto com o tutor
     if (table === 'tutores') {
-      const { data: tutorData, error: tutorError } = await supabase
-        .from('tutores')
-        .select('*')
+      const { data, error } = await supabase
+        .from(table)
+        .select(`*, endereco ( id, rua, numero, bairro, cidade, estado, cep )`)
         .eq('id', id)
         .single()
-      if (tutorError) throw tutorError
+      if (error) throw error
 
-      const { data: enderecoData, error: enderecoError } = await supabase
-        .from('endereco')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (enderecoError) {
-        return tutorData
+      const usuario = {
+        ...data,
+        endereco_id: data.endereco?.id,
+        rua: data.endereco?.rua,
+        numero: data.endereco?.numero,
+        bairro: data.endereco?.bairro,
+        cidade: data.endereco?.cidade,
+        estado: data.endereco?.estado,
+        cep: data.endereco?.cep
       }
-      return { ...tutorData, ...enderecoData, id: tutorData.id }
+      return usuario
     }
 
+    // Padrão para outras tabelas
     const { data, error } = await supabase
       .from(table)
       .select('*')
@@ -72,19 +75,15 @@ export default function useApi () {
   }
 
   const post = async (table, form) => {
-    // Garante que o usuário está logado antes de tentar salvar
-    if (!user.value?.id) {
-      throw new Error('Usuário não autenticado. Faça login novamente.')
-    }
-
     const { data, error } = await supabase
       .from(table)
-      .insert({
-        ...form,
-        user: user.value.id
-      })
-      .select()
-
+      .insert([
+        {
+          ...form,
+          user_id: user.value.id
+        }
+      ])
+      .select() // Importante retornar os dados inseridos
     if (error) throw error
     return data
   }
@@ -92,10 +91,8 @@ export default function useApi () {
   const update = async (table, form) => {
     const { data, error } = await supabase
       .from(table)
-      .update(form)
-      .eq('id', form.id)
-      .select()
-
+      .update({ ...form })
+      .match({ id: form.id })
     if (error) throw error
     return data
   }
@@ -104,7 +101,7 @@ export default function useApi () {
     const { data, error } = await supabase
       .from(table)
       .delete()
-      .eq('id', id)
+      .match({ id })
     if (error) throw error
     return data
   }
@@ -135,20 +132,20 @@ export default function useApi () {
   const getBrand = async () => {
     const id = route.params.id || user?.value?.id
     if (id) {
-      try {
-        const { data, error } = await supabase
-          .from('config')
-          .select('*')
-          .eq('user_id', id)
-        if (error) throw error
-        if (data.length > 0) {
-          brand.value = data[0]
-          setBrand(brand.value.primary, brand.value.secondary)
-        }
-        return brand
-      } catch {
-        // Erro silenciado intencionalmente
+      $q.loading.show({
+        backgroundColor: 'dark'
+      })
+      const { data, error } = await supabase
+        .from('config')
+        .select('*')
+        .eq('user_id', id)
+      if (error) throw error
+      if (data.length > 0) {
+        brand.value = data[0]
+        setBrand(brand.value.primary, brand.value.secondary)
       }
+      $q.loading.hide()
+      return brand
     }
   }
 
