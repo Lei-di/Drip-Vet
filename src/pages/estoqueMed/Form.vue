@@ -16,7 +16,7 @@
         <q-input
           label="Quantidade"
           v-model="form.quantidade"
-          :rules="[val => (val && val.length > 0) || 'É preciso inserir a quantidade!']"
+          :rules="[val => (val !== null && val !== undefined) || 'É preciso inserir a quantidade!']"
           type="number"
         />
 
@@ -26,39 +26,26 @@
         />
 
         <q-input
-          label="Prioridade"
-          v-model="form.prioridade"
+          label="Data Entrada"
+          v-model="form.dataEntrada"
+          mask="##/##/####"
+          hint="Formato: DD/MM/AAAA"
+          :rules="[val => (val && val.length === 10) || 'Data de entrada é obrigatória e deve estar completa!']"
         />
-
+        
+        <q-input
+          v-if="isUpdate"
+          label="Data Saída"
+          v-model="form.dataSaida"
+          mask="##/##/####"
+          hint="Formato: DD/MM/AAAA"
+        />
         <q-editor
           label="Observações"
           v-model="form.observacoes"
           min-height="5rem"
         />
 
-        <q-input
-          label="Status"
-          v-model="form.status"
-        />
-
-        <q-input
-          label="Categoria"
-          v-model="form.categoria"
-        />
-        
-        <q-input
-          label="Data da Última Entrada"
-          v-model="form.dataEntrada"
-          mask="##/##/####"
-          hint="Formato: DD/MM/AAAA"
-        />
-        
-        <q-input
-          label="Data da Última Saída"
-          v-model="form.dataSaida"
-          mask="##/##/####"
-          hint="Formato: DD/MM/AAAA"
-        />
         <q-btn
           :label="isUpdate ? 'Atualizar' : 'Salvar'"
           color="primary"
@@ -103,10 +90,7 @@ export default defineComponent({
       nome: '',
       quantidade: 0,
       fornecedor: '',
-      prioridade: '',
       observacoes: '',
-      status: '',
-      categoria: '',
       dataEntrada: '', 
       dataSaida: ''
     })
@@ -144,12 +128,20 @@ export default defineComponent({
       try {
         const dataToSubmit = { ...form.value }
 
-        // Converte as datas para o formato do banco (YYYY-MM-DD) antes de enviar
-        if (dataToSubmit.dataEntrada) {
-          dataToSubmit.dataEntrada = convertDateToDBFormat(dataToSubmit.dataEntrada)
+        // Limpa e converte a Data de Entrada (obrigatória)
+        if (dataToSubmit.dataEntrada && dataToSubmit.dataEntrada.length === 10) {
+            dataToSubmit.dataEntrada = convertDateToDBFormat(dataToSubmit.dataEntrada)
+        } else {
+            // Se chegou aqui com a validação do form correta, a data deveria estar completa.
+            // Se estiver incompleta, será null (o banco deve ser NOT NULL para forçar o erro).
+            dataToSubmit.dataEntrada = null 
         }
-        if (dataToSubmit.dataSaida) {
-          dataToSubmit.dataSaida = convertDateToDBFormat(dataToSubmit.dataSaida)
+        
+        // Limpa e converte a Data de Saída (somente se estiver em modo update e o campo estiver completo)
+        if (isUpdate.value && dataToSubmit.dataSaida && dataToSubmit.dataSaida.length === 10) {
+            dataToSubmit.dataSaida = convertDateToDBFormat(dataToSubmit.dataSaida)
+        } else {
+            dataToSubmit.dataSaida = null // Garante que seja null para o banco
         }
         
         if (isUpdate.value) {
@@ -169,9 +161,12 @@ export default defineComponent({
       try {
         estoqueMedicamentos = await getById(table, id)
         
-        // Converte as datas do banco (YYYY-MM-DD) para o formato BR (DD/MM/AAAA) ao carregar
+        // Mapeia e converte os dados do banco
         form.value = {
-          ...estoqueMedicamentos,
+          nome: estoqueMedicamentos.nome || '',
+          quantidade: estoqueMedicamentos.quantidade || 0,
+          fornecedor: estoqueMedicamentos.fornecedor || '',
+          observacoes: estoqueMedicamentos.observacoes || '',
           dataEntrada: convertDateToBRFormat(estoqueMedicamentos.dataEntrada),
           dataSaida: convertDateToBRFormat(estoqueMedicamentos.dataSaida)
         }
