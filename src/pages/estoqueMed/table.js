@@ -6,6 +6,8 @@ const columns_estoqueMed = [
   { name: 'observacoes', align: 'left', label: 'Observações', field: 'observacoes', sortable: true },
   { name: 'status', align: 'left', label: 'Status', field: 'status', sortable: true },
   { name: 'categoria', align: 'left', label: 'Categoria', field: 'categoria', sortable: true },
+  { name: 'dataEntrada', align: 'left', label: 'Última Entrada', field: 'dataEntrada', sortable: true },
+  { name: 'dataSaida', align: 'left', label: 'Última Saída', field: 'dataSaida', sortable: true },
   { name: 'actions', align: 'right', label: 'Ações', field: 'actions', sortable: false }
 ]
 

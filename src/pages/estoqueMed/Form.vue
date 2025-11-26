@@ -45,7 +45,20 @@
           label="Categoria"
           v-model="form.categoria"
         />
-
+        
+        <q-input
+          label="Data da Última Entrada"
+          v-model="form.dataEntrada"
+          mask="##/##/####"
+          hint="Formato: DD/MM/AAAA"
+        />
+        
+        <q-input
+          label="Data da Última Saída"
+          v-model="form.dataSaida"
+          mask="##/##/####"
+          hint="Formato: DD/MM/AAAA"
+        />
         <q-btn
           :label="isUpdate ? 'Atualizar' : 'Salvar'"
           color="primary"
@@ -93,8 +106,33 @@ export default defineComponent({
       prioridade: '',
       observacoes: '',
       status: '',
-      categoria: ''
+      categoria: '',
+      dataEntrada: '', 
+      dataSaida: ''
     })
+    
+    // Helper para converter DD/MM/AAAA para YYYY-MM-DD (formato do banco)
+    const convertDateToDBFormat = (dateString) => {
+      if (!dateString || dateString.length < 10) return null
+      const parts = dateString.split('/')
+      // Espera DD/MM/YYYY
+      if (parts.length === 3 && parts[2].length === 4) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}` // YYYY-MM-DD
+      }
+      return dateString
+    }
+
+    // Helper para converter YYYY-MM-DD (formato do banco) para DD/MM/AAAA
+    const convertDateToBRFormat = (dateString) => {
+      if (!dateString || dateString.length < 10) return ''
+      // Espera YYYY-MM-DD
+      const parts = dateString.substring(0, 10).split('-')
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}` // DD/MM/YYYY
+      }
+      return dateString
+    }
+
 
     onMounted(() => {
       if (isUpdate.value) {
@@ -104,14 +142,23 @@ export default defineComponent({
 
     const handleSubmit = async () => {
       try {
+        const dataToSubmit = { ...form.value }
+
+        // Converte as datas para o formato do banco (YYYY-MM-DD) antes de enviar
+        if (dataToSubmit.dataEntrada) {
+          dataToSubmit.dataEntrada = convertDateToDBFormat(dataToSubmit.dataEntrada)
+        }
+        if (dataToSubmit.dataSaida) {
+          dataToSubmit.dataSaida = convertDateToDBFormat(dataToSubmit.dataSaida)
+        }
+        
         if (isUpdate.value) {
-          await update(table, form.value)
+          await update(table, dataToSubmit)
           notifySuccess('Medicamento atualizado com sucesso!')
         } else {
-          await post(table, form.value)
+          await post(table, dataToSubmit)
           notifySuccess('Medicamento salvo com sucesso!')
         }
-        // CORREÇÃO: Altera o nome da rota de redirecionamento para 'estoqueMed'
         router.push({ name: 'estoqueMed' })
       } catch (error) {
         notifyError(error.message)
@@ -121,7 +168,13 @@ export default defineComponent({
     const handleGetEstoqueMedicamentos = async (id) => {
       try {
         estoqueMedicamentos = await getById(table, id)
-        form.value = estoqueMedicamentos
+        
+        // Converte as datas do banco (YYYY-MM-DD) para o formato BR (DD/MM/AAAA) ao carregar
+        form.value = {
+          ...estoqueMedicamentos,
+          dataEntrada: convertDateToBRFormat(estoqueMedicamentos.dataEntrada),
+          dataSaida: convertDateToBRFormat(estoqueMedicamentos.dataSaida)
+        }
       } catch (error) {
         notifyError(error.message)
       }
