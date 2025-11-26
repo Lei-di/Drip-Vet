@@ -38,14 +38,23 @@
       <h2 class="agenda-title">Agenda de Hoje</h2>
       <p class="agenda-subtitle">Próximos atendimentos agendados</p>
 
-      <div class="agenda-card" v-for="(item, index) in agenda" :key="index">
+      <div v-if="loading" class="text-center q-pa-md">
+        <q-spinner color="primary" size="3em" />
+        <p class="q-mt-md">Carregando agenda...</p>
+      </div>
+
+      <div v-else-if="agenda.length === 0" class="text-center q-pa-md">
+        <p class="text-grey">Nenhum agendamento para hoje</p>
+      </div>
+
+      <div class="agenda-card" v-for="(item, index) in agenda" :key="item.id || index">
         <div class="agenda-icon">
           <q-icon name="pets" size="24px" />
         </div>
         <div class="agenda-info">
-          <strong>{{ item.horario }} - {{ item.nome }}</strong>
-          <p>Tutor: {{ item.tutor }}</p>
-          <p>Consulta: {{ item.consulta }}</p>
+          <strong>{{ item.horario }} - {{ item.nomePet }}</strong>
+          <p>Tutor: {{ item.nomeTutor }}</p>
+          <p>Tipo: {{ item.tipoConsulta || 'Não informado' }}</p>
         </div>
         <q-btn
           unelevated
@@ -54,7 +63,7 @@
           label="Ver Detalhes"
           size="sm"
           class="agenda-btn"
-          @click="botaoClicado[index] = !botaoClicado[index]"
+          @click="abrirDetalhes(item)"
         />
       </div>
     </div>
@@ -62,23 +71,161 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import useApi from 'src/composables/UseApi'
+import useNotify from 'src/composables/UseNotify'
+import { supabase } from 'src/boot/supabase'
+import { date, useQuasar } from 'quasar'
 
 const router = useRouter()
+const { notifyError } = useNotify()
+const $q = useQuasar()
+
+const agenda = ref([])
+const loading = ref(true)
+const botaoClicado = ref([]) // controla a cor de cada botão
+const detalhesAgendamento = ref(null)
 
 function goTo(page) {
   router.push(`/app/${page}`)
 }
 
-const agenda = ref([
-  { horario: '09:00', nome: 'Fredinho', tutor: 'Francyeli Bordinhão', consulta: 'Dra. Laura' },
-  { horario: '11:30', nome: 'Filomena', tutor: 'Larissa Souza', consulta: 'Dra. Pietra' },
-  { horario: '14:00', nome: 'Cacau', tutor: 'Matheus Lourenço', consulta: 'Dra. Francyeli' },
-  { horario: '17:00', nome: 'Bob', tutor: 'Gabriella Nascimento', consulta: 'Dra. Nicolé' }
-])
+const carregarAgendaDoDia = async () => {
+  try {
+    loading.value = true
 
-const botaoClicado = ref([]) // controla a cor de cada botão
+    // Obtém a data de hoje no formato YYYY-MM-DD
+    const hoje = new Date()
+    const dataHoje = date.formatDate(hoje, 'YYYY-MM-DD')
+
+    // Busca agendamentos do dia atual
+    const { data: agendamentos, error } = await supabase
+      .from('agendamento')
+      .select('*')
+      .eq('dataConsulta', dataHoje)
+      .order('horaConsulta', { ascending: true })
+
+    if (error) throw error
+
+    // Busca os nomes dos tutores, pets e veterinários
+    const agendaFormatada = await Promise.all(
+      (agendamentos || []).map(async (agendamento) => {
+        let nomeTutor = 'Não informado'
+        let nomePet = 'Não informado'
+        let nomeVeterinario = 'Não informado'
+
+        // Busca nome do tutor
+        if (agendamento.tutor) {
+          try {
+            const { data: tutor } = await supabase
+              .from('tutores')
+              .select('nome')
+              .eq('id', agendamento.tutor)
+              .single()
+
+            if (tutor) {
+              nomeTutor = tutor.nome
+            }
+          } catch (err) {
+            console.warn('Erro ao buscar tutor:', err)
+          }
+        }
+
+        // Busca nome do pet
+        if (agendamento.pet) {
+          try {
+            const { data: pet } = await supabase
+              .from('pets')
+              .select('nome')
+              .eq('id', agendamento.pet)
+              .single()
+
+            if (pet) {
+              nomePet = pet.nome
+            }
+          } catch (err) {
+            console.warn('Erro ao buscar pet:', err)
+          }
+        }
+
+        // Busca nome do veterinário
+        if (agendamento.vet) {
+          try {
+            const { data: veterinario } = await supabase
+              .from('usuarios')
+              .select('nome')
+              .eq('id', agendamento.vet)
+              .single()
+
+            if (veterinario) {
+              nomeVeterinario = veterinario.nome
+            }
+          } catch (err) {
+            console.warn('Erro ao buscar veterinário:', err)
+          }
+        }
+
+        // Formata o horário (remove segundos se existirem)
+        let horarioFormatado = agendamento.horaConsulta || 'Não informado'
+        if (horarioFormatado && horarioFormatado.includes(':')) {
+          const partes = horarioFormatado.split(':')
+          if (partes.length >= 2) {
+            horarioFormatado = `${partes[0]}:${partes[1]}`
+          }
+        }
+
+        return {
+          id: agendamento.id,
+          horario: horarioFormatado,
+          nomePet: nomePet,
+          nomeTutor: nomeTutor,
+          nomeVeterinario: nomeVeterinario,
+          tipoConsulta: agendamento.tipoConsulta || 'Não informado',
+          observacoes: agendamento.observacoes || '',
+        }
+      }),
+    )
+
+    agenda.value = agendaFormatada
+    loading.value = false
+  } catch (error) {
+    console.error('Erro ao carregar agenda:', error)
+    notifyError('Erro ao carregar agenda do dia: ' + error.message)
+    loading.value = false
+  }
+}
+
+const abrirDetalhes = (agendamento) => {
+  detalhesAgendamento.value = agendamento
+
+  $q.dialog({
+    title: 'Detalhes do Agendamento',
+    message: `
+      <div style="text-align: left; padding: 10px;">
+        <p><strong>Horário:</strong> ${agendamento.horario}</p>
+        <p><strong>Pet:</strong> ${agendamento.nomePet}</p>
+        <p><strong>Tutor:</strong> ${agendamento.nomeTutor}</p>
+        <p><strong>Veterinário:</strong> ${agendamento.nomeVeterinario}</p>
+        <p><strong>Tipo de Consulta:</strong> ${agendamento.tipoConsulta}</p>
+        ${agendamento.observacoes ? `<p><strong>Observações:</strong></p><p style="background: #f5f5f5; padding: 10px; border-radius: 5px; margin-top: 5px;">${agendamento.observacoes}</p>` : '<p><strong>Observações:</strong> Nenhuma observação cadastrada.</p>'}
+      </div>
+    `,
+    html: true,
+    ok: {
+      label: 'Fechar',
+      color: 'primary',
+      flat: true,
+    },
+    persistent: true,
+  }).onOk(() => {
+    detalhesAgendamento.value = null
+  })
+}
+
+onMounted(() => {
+  carregarAgendaDoDia()
+})
 </script>
 
 <style scoped>
@@ -88,7 +235,7 @@ const botaoClicado = ref([]) // controla a cor de cada botão
   padding-top: 80px;
   padding-left: 200px;
   padding-right: 80px;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   gap: 40px;
 }
 
