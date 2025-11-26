@@ -111,7 +111,8 @@ export default defineComponent({
           await post(table, form.value)
           notifySuccess('Medicamento salvo com sucesso!')
         }
-        router.push({ name: 'estoqueMedicamentos' })
+        // CORREÇÃO: Altera o nome da rota de redirecionamento para 'estoqueMed'
+        router.push({ name: 'estoqueMed' })
       } catch (error) {
         notifyError(error.message)
       }
