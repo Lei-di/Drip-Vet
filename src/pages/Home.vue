@@ -5,7 +5,6 @@
       <p>Sistema de Gerenciamento <br />para Clínica Veterinária</p>
 
       <ul class="action-links">
-        <!-- Ajustei para rotas existentes -->
         <li @click="goTo('form-pet')" class="action-item">
           <div class="icon-circle">
             <q-icon name="pets" size="20px" />
@@ -33,7 +32,6 @@
       </ul>
     </div>
 
-    <!-- AGENDA DE HOJE -->
     <div class="agenda-container">
       <h2 class="agenda-title">Agenda de Hoje</h2>
       <p class="agenda-subtitle">Próximos atendimentos agendados</p>
@@ -73,7 +71,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import useApi from 'src/composables/UseApi'
 import useNotify from 'src/composables/UseNotify'
 import { supabase } from 'src/boot/supabase'
 import { date, useQuasar } from 'quasar'

@@ -8,7 +8,6 @@ const columnsPets = [
   { name: 'dataNasc', align: 'left', label: 'Data de Nascimento', field: 'dataNasc', sortable: true },
   { name: 'idade', align: 'left', label: 'Idade', field: 'idade', sortable: true },
   { name: 'peso', align: 'left', label: 'Peso', field: 'peso', sortable: true },
-  { name: 'cor', align: 'left', label: 'Cor', field: 'cor', sortable: true },
   { name: 'chip', align: 'left', label: 'Possui Chip', field: 'chip', sortable: true },
   { name: 'saude', align: 'left', label: 'Saúde', field: 'saude', sortable: true },
   { name: 'observacoes', align: 'left', label: 'Observações', field: 'observacoes', sortable: true },
