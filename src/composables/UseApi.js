@@ -105,7 +105,7 @@ export default function useApi() {
 
   const post = async (table, form) => {
     // Tabelas que precisam de 'user' (bigint - referencia usuarios)
-    const tablesWithUserBigint = ['tutores', 'agendamento', 'estoqueMedicamentos']
+    const tablesWithUserBigint = ['tutores', 'agendamento', 'estoqueMedicamentos', 'campanhas'] // <--- CORREÇÃO APLICADA
 
     // Tabelas que precisam de 'user' (uuid - referencia auth.users)
     const tablesWithUserUuid = ['pets']
@@ -129,7 +129,7 @@ export default function useApi() {
       }
     }
 
-    const { data, error } = await supabase.from(table).insert([dataToInsert]).select() // Importante retornar os dados inseridos
+    const { data, error } = await supabase.from(table).insert([dataToInsert]).select()
     if (error) throw error
     return data
   }
