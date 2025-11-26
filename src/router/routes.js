@@ -33,11 +33,7 @@ const routes = [
       { path: 'form-usuarios/:id?', name: 'form-usuarios', component: () => import('pages/usuarios/Form.vue') },
       { path: 'form-config/:id?', name: 'form-config', component: () => import('pages/config/Form.vue') },
 
-      // --- NOVAS ROTAS (Adicione estas) ---
-      { path: 'consultas', name: 'consultas', component: () => import('pages/consultas/List.vue') },
-      { path: 'form-consulta/:id?', name: 'form-consulta', component: () => import('pages/consultas/Form.vue') },
-      { path: 'notificacoes', name: 'notificacoes', component: () => import('pages/notificacoes/List.vue') },
-      { path: 'form-notificacao/:id?', name: 'form-notificacao', component: () => import('pages/notificacoes/Form.vue') },
+      // Rotas mantidas:
       { path: 'campanhas', name: 'campanhas', component: () => import('pages/campanhas/List.vue') },
       { path: 'form-campanha/:id?', name: 'form-campanha', component: () => import('pages/campanhas/Form.vue') },
       { path: 'vacinacao', name: 'vacinacao', component: () => import('pages/vacinacao/List.vue') },

@@ -31,21 +31,9 @@
           />
           <q-btn
             flat
-            label="Consultas"
-            @click="goTo('consultas')"
-            :class="[{ 'active-tab': isActive('consultas') }, 'tab']"
-          />
-          <q-btn
-            flat
             label="Remédios"
             @click="goTo('estoqueMed')"
             :class="[{ 'active-tab': isActive('estoqueMed') }, 'tab']"
-          />
-          <q-btn
-            flat
-            label="Notificações"
-            @click="goTo('notificacoes')"
-            :class="[{ 'active-tab': isActive('notificacoes') }, 'tab']"
           />
           <q-btn
             flat
