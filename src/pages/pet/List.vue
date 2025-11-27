@@ -1,10 +1,30 @@
 <template>
   <q-page padding>
     <div class="row">
-      <q-table :rows="pet" :columns="columnsPets" row-key="id" class="col-12" :loading="loading">
+      <q-table
+        :rows="filteredPets"
+        :columns="columnsPets"
+        row-key="id"
+        class="col-12"
+        :loading="loading"
+      >
         <template v-slot:top>
           <span class="text-h6"> Pets </span>
           <q-space />
+          <q-input
+            v-model="filter"
+            placeholder="Buscar pet ou tutor..."
+            dense
+            outlined
+            clearable
+            class="q-mr-md"
+            style="min-width: 250px"
+            @update:model-value="applyFilter"
+          >
+            <template v-slot:prepend>
+              <q-icon name="search" />
+            </template>
+          </q-input>
           <q-btn
             v-if="$q.platform.is.desktop"
             label="Novo"
@@ -69,7 +89,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, onMounted, watch } from 'vue'
 import useApi from 'src/composables/UseApi'
 import useNotify from 'src/composables/UseNotify'
 import { useRouter } from 'vue-router'
@@ -81,7 +101,9 @@ export default defineComponent({
   name: 'PagePetsList',
   setup() {
     const pet = ref([])
+    const filteredPets = ref([])
     const loading = ref(true)
+    const filter = ref('')
     const router = useRouter()
     const table = 'pets'
     const $q = useQuasar()
@@ -150,12 +172,35 @@ export default defineComponent({
         )
 
         pet.value = petsFormatados
+        filteredPets.value = petsFormatados
         loading.value = false
       } catch (error) {
         notifyError(error.message)
         loading.value = false
       }
     }
+
+    // Filtro em tempo real
+    const applyFilter = () => {
+      if (!filter.value || filter.value.trim() === '') {
+        filteredPets.value = pet.value
+        return
+      }
+
+      const searchTerm = filter.value.toLowerCase().trim()
+      filteredPets.value = pet.value.filter((petItem) => {
+        return (
+          (petItem.nome && petItem.nome.toLowerCase().includes(searchTerm)) ||
+          (petItem.nomeTutor && petItem.nomeTutor.toLowerCase().includes(searchTerm)) ||
+          (petItem.raca && petItem.raca.toLowerCase().includes(searchTerm))
+        )
+      })
+    }
+
+    // Observa mudanças no filtro
+    watch(filter, () => {
+      applyFilter()
+    })
 
     const handleEdit = (pet) => {
       router.push({ name: 'form-pet', params: { id: pet.id } })
@@ -185,10 +230,13 @@ export default defineComponent({
     return {
       columnsPets,
       pet,
+      filteredPets,
       loading,
+      filter,
       handleEdit,
       handleRemovePets,
       formatarIdade,
+      applyFilter,
     }
   },
 })

@@ -4,45 +4,63 @@
   <q-page padding>
     <div class="row">
       <q-table
-        :rows="tutores"
+        :rows="filteredTutores"
         :columns="columnsTutor"
         row-key="id"
         class="col-12"
         :loading="loading"
       >
         <template v-slot:top>
-          <span class="text-h6">
-            Tutores
-          </span>
+          <span class="text-h6"> Tutores </span>
           <q-space />
+          <q-input
+            v-model="filter"
+            placeholder="Buscar tutor..."
+            dense
+            outlined
+            clearable
+            class="q-mr-md"
+            style="min-width: 250px"
+            @update:model-value="applyFilter"
+          >
+            <template v-slot:prepend>
+              <q-icon name="search" />
+            </template>
+          </q-input>
           <q-btn
             v-if="$q.platform.is.desktop"
             label="Novo"
             color="primary"
+            icon="mdi-plus"
+            dense
             :to="{ name: 'form-tutor' }"
-            class="flex-center"
           />
         </template>
         <template v-slot:body-cell-actions="props">
           <q-td :props="props" class="q-gutter-x-sm">
-            <q-btn icon="mdi-pencil-outline" color="info" dense size="sm" @click="handleEdit(props.row)">
-              <q-tooltip>
-                Editar
-              </q-tooltip>
+            <q-btn
+              icon="mdi-pencil-outline"
+              color="info"
+              dense
+              size="sm"
+              @click="handleEdit(props.row)"
+            >
+              <q-tooltip> Editar </q-tooltip>
             </q-btn>
-            <q-btn icon="mdi-delete-outline" color="negative" dense size="sm" @click="handleRemoveTutor(props.row)">
-              <q-tooltip>
-                Remover
-              </q-tooltip>
+            <q-btn
+              icon="mdi-delete-outline"
+              color="negative"
+              dense
+              size="sm"
+              @click="handleRemoveTutor(props.row)"
+            >
+              <q-tooltip> Remover </q-tooltip>
             </q-btn>
           </q-td>
         </template>
       </q-table>
     </div>
-    <q-page-sticky
-      position="bottom-right"
-      :offset="[18, 18]"
-    >
+    <q-page-sticky position="bottom-right" :offset="[18, 18]">
       <q-btn
         v-if="$q.platform.is.mobile"
         fab
@@ -55,7 +73,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from 'vue'
+import { defineComponent, ref, onMounted, watch } from 'vue'
 import useApi from 'src/composables/UseApi'
 import useNotify from 'src/composables/UseNotify'
 import { useRouter } from 'vue-router'
@@ -63,9 +81,11 @@ import { columnsTutor } from './table'
 
 export default defineComponent({
   name: 'PageTutorList',
-  setup () {
+  setup() {
     const tutores = ref([])
+    const filteredTutores = ref([])
     const loading = ref(true)
+    const filter = ref('')
     const router = useRouter()
     const table = 'tutores'
 
@@ -75,12 +95,36 @@ export default defineComponent({
     const handleListTutor = async () => {
       try {
         loading.value = true
-        tutores.value = await list(table) // Corrigido: não precisa mais do user.id
+        tutores.value = await list(table)
+        filteredTutores.value = tutores.value
         loading.value = false
       } catch (error) {
         notifyError(error.message)
       }
     }
+
+    // Filtro em tempo real
+    const applyFilter = () => {
+      if (!filter.value || filter.value.trim() === '') {
+        filteredTutores.value = tutores.value
+        return
+      }
+
+      const searchTerm = filter.value.toLowerCase().trim()
+      filteredTutores.value = tutores.value.filter((tutor) => {
+        return (
+          (tutor.nome && tutor.nome.toLowerCase().includes(searchTerm)) ||
+          (tutor.cpf && tutor.cpf.toLowerCase().includes(searchTerm)) ||
+          (tutor.email && tutor.email.toLowerCase().includes(searchTerm)) ||
+          (tutor.whatsapp && tutor.whatsapp.toLowerCase().includes(searchTerm))
+        )
+      })
+    }
+
+    // Observa mudanças no filtro
+    watch(filter, () => {
+      applyFilter()
+    })
 
     const handleEdit = (tutor) => {
       router.push({ name: 'form-tutor', params: { id: tutor.id } })
@@ -90,9 +134,9 @@ export default defineComponent({
       try {
         const confirmed = await confirmDialog(
           'Confirmação',
-          `Deseja realmente remover ${tutor.nome} ?`
+          `Deseja realmente remover ${tutor.nome} ?`,
         )
-        
+
         if (confirmed) {
           await remove(table, tutor.id)
           notifySuccess('Tutor removido com sucesso!')
@@ -110,10 +154,13 @@ export default defineComponent({
     return {
       columnsTutor,
       tutores,
+      filteredTutores,
       loading,
+      filter,
       handleEdit,
-      handleRemoveTutor
+      handleRemoveTutor,
+      applyFilter,
     }
-  }
+  },
 })
 </script>

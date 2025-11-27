@@ -2,7 +2,12 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated class="bg-green-moss text-white">
       <q-toolbar>
-        <q-toolbar-title class="text-white">DripVet</q-toolbar-title>
+        <q-toolbar-title 
+          class="text-white logo-clickable" 
+          @click="goToHome"
+        >
+          DripVet
+        </q-toolbar-title>
 
         <div class="q-gutter-sm row items-center">
           <q-btn
@@ -125,5 +130,15 @@ function isActive(page) {
 
 .tab:hover{
   background-color: #78a282;
+}
+
+.logo-clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+.logo-clickable:hover {
+  opacity: 0.8;
 }
 </style>
