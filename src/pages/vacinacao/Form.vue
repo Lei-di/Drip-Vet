@@ -221,23 +221,27 @@ export default defineComponent({
           await handleListPets()
         }
 
+        form.value = {
+          ...vacinacao,
+          vacina_nome: vacinacao.vacina_nome || '',
+          data_aplicacao: vacinacao.data_aplicacao || '',
+        }
+        
         // Busca o pet pelo nome para preencher o select
         if (vacinacao.pet_nome) {
+          console.log(vacinacao.pet_nome)
+          console.log(optionsPets.value)
+
           const petEncontrado = optionsPets.value.find(
             (p) => p.nome.toLowerCase() === vacinacao.pet_nome.toLowerCase(),
           )
+          console.log(petEncontrado)
           if (petEncontrado) {
             form.value.pet = petEncontrado.id
             form.value.pet_nome = petEncontrado.nome
           } else {
             form.value.pet_nome = vacinacao.pet_nome
           }
-        }
-
-        form.value = {
-          ...vacinacao,
-          vacina_nome: vacinacao.vacina_nome || '',
-          data_aplicacao: vacinacao.data_aplicacao || '',
         }
       } catch (error) {
         notifyError(error.message)
