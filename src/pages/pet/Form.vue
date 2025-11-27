@@ -348,8 +348,6 @@ export default defineComponent({
 
           const imgUrl = await uploadImg(img.value, 'pets')
           form.value.imgUrl = imgUrl
-        } else if (isUpdate.value && form.value.imgUrl === '') {
-
         } 
 
         const dataParaEnvio = { ...form.value }
