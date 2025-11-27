@@ -101,7 +101,16 @@ const carregarAgendaDoDia = async () => {
       .eq('dataConsulta', dataHoje)
       .order('horaConsulta', { ascending: true })
 
-    if (error) throw error
+    if (error) {
+      // Se for erro de autenticação, para aqui e não tenta novamente
+      if (error.code === 'PGRST301' || error.message?.includes('JWT') || error.message?.includes('token') || error.message?.includes('refresh_token')) {
+        console.warn('Erro de autenticação ao carregar agenda')
+        agenda.value = []
+        loading.value = false
+        return
+      }
+      throw error
+    }
 
     const agendaFormatada = await Promise.all(
       (agendamentos || []).map(async (agendamento) => {
@@ -184,8 +193,14 @@ const carregarAgendaDoDia = async () => {
     agenda.value = agendaFormatada
     loading.value = false
   } catch (error) {
-    console.error('Erro ao carregar agenda:', error)
-    notifyError('Erro ao carregar agenda do dia: ' + error.message)
+    // Trata erros de autenticação separadamente
+    if (error.message?.includes('refresh_token') || error.message?.includes('Invalid Refresh Token') || error.message?.includes('JWT')) {
+      console.warn('Erro de autenticação ao carregar agenda')
+      agenda.value = []
+    } else {
+      console.error('Erro ao carregar agenda:', error)
+      notifyError('Erro ao carregar agenda do dia: ' + error.message)
+    }
     loading.value = false
   }
 }

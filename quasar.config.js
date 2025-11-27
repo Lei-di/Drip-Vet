@@ -2,7 +2,23 @@
 
 import { defineConfig } from '#q-app/wrappers'
 
-export default defineConfig((/* ctx */) => {
+export default defineConfig((ctx) => {
+  const vitePlugins = []
+
+  // Apenas adiciona o checker durante o desenvolvimento
+  if (ctx.dev) {
+    vitePlugins.push([
+      'vite-plugin-checker',
+      {
+        eslint: {
+          lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,vue}"',
+          useFlatConfig: true,
+        },
+      },
+      { server: true },
+    ])
+  }
+
   return {
     boot: ['axios'],
     css: ['app.scss'],
@@ -25,23 +41,13 @@ export default defineConfig((/* ctx */) => {
         SUPABASE_KEY: process.env.SUPABASE_KEY
       },
 
-      vitePlugins: [
-        [
-          'vite-plugin-checker',
-          {
-            eslint: {
-              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,vue}"',
-              useFlatConfig: true,
-            },
-          },
-          { server: false },
-        ],
-      ],
+      vitePlugins,
     },
 
     devServer: {
       open: true,
-      port: 5010
+      port: 5010,
+      vitePlugins,
     },
 
     framework: {

@@ -73,7 +73,7 @@ import useAuthUser from 'src/composables/UseAuthUser'
 export default defineComponent({
   name: 'PageMe',
   components: {
-    CardDashboard: defineAsyncComponent(() => import('components/CardDashbaord.vue'))
+    CardDashboard: defineAsyncComponent(() => import('components/CardDashboard.vue'))
   },
   setup () {
     const { user } = useAuthUser()
