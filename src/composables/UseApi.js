@@ -38,9 +38,25 @@ export default function useApi() {
   }
 
   const list = async (table) => {
-    const { data, error } = await supabase.from(table).select('*')
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase.from(table).select('*')
+      if (error) {
+        // Se for erro de autenticação, retorna array vazio em vez de lançar erro
+        if (error.code === 'PGRST301' || error.status === 400 || error.message?.includes('JWT') || error.message?.includes('token') || error.message?.includes('refresh_token')) {
+          console.warn(`Erro de autenticação ao listar ${table}:`, error.message)
+          return []
+        }
+        throw error
+      }
+      return data || []
+    } catch (error) {
+      // Se for erro de autenticação, retorna array vazio
+      if (error.message?.includes('refresh_token') || error.message?.includes('Invalid Refresh Token') || error.status === 400) {
+        console.warn(`Erro de autenticação ao listar ${table}`)
+        return []
+      }
+      throw error
+    }
   }
 
   const fetchCount = async (table, userId) => {
@@ -154,18 +170,32 @@ export default function useApi() {
   }
 
   const getBrand = async () => {
-    const usuarioId = await getUsuarioId()
-    if (usuarioId) {
-      $q.loading.show({
-        backgroundColor: 'dark',
-      })
+    try {
+      const usuarioId = await getUsuarioId()
+      if (!usuarioId) {
+        return brand
+      }
+
       const { data, error } = await supabase.from('config').select('*').eq('user', usuarioId)
-      if (error) throw error
-      if (data.length > 0) {
+      
+      if (error) {
+        // Se for erro 400 ou de autenticação, apenas loga e continua
+        if (error.code === 'PGRST301' || error.status === 400 || error.message?.includes('JWT') || error.message?.includes('token')) {
+          console.warn('Erro ao buscar configuração da marca:', error.message)
+          return brand
+        }
+        throw error
+      }
+
+      if (data && data.length > 0) {
         brand.value = data[0]
         setBrand(brand.value.primary, brand.value.secondary)
       }
-      $q.loading.hide()
+      
+      return brand
+    } catch (error) {
+      // Trata erros silenciosamente para não quebrar a aplicação
+      console.warn('Erro ao carregar configuração da marca:', error.message)
       return brand
     }
   }

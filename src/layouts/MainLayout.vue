@@ -82,8 +82,13 @@ const route = useRoute()
 const { logout } = useAuthUser()
 const { getBrand } = useApi()
 
-onMounted(() => {
-  getBrand()
+onMounted(async () => {
+  try {
+    await getBrand()
+  } catch (error) {
+    // Erro já tratado no getBrand, apenas loga aqui se necessário
+    console.warn('Erro ao carregar marca:', error)
+  }
 })
 
 function goTo(page) {
