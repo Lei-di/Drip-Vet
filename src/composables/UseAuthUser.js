@@ -1,7 +1,6 @@
 import { ref } from 'vue'
 import useSupabase from 'boot/supabase'
 
-// Exporta o user para uso global
 export const user = ref(null)
 
 export default function useAuthUser() {
@@ -31,19 +30,15 @@ export default function useAuthUser() {
     return !!user.value
   }
 
-  // Atualizado para aceitar metadados (nome, telefone) e salvar no user_metadata
   const register = async ({ email, password, ...meta }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: meta // Salva nome, telefone, etc. nos metadados do utilizador
-        // redirectTo removido pois não vamos depender da confirmação de e-mail no fluxo imediato
+        data: meta 
       }
     })
     if (error) throw error
-    // Em alguns casos de configuração do Supabase, o usuário já pode vir logado após o registro.
-    // Se data.user existir, atualizamos o estado local.
     if (data.user) {
       user.value = data.user
     }

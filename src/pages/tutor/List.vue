@@ -121,7 +121,6 @@ export default defineComponent({
       })
     }
 
-    // Observa mudanças no filtro
     watch(filter, () => {
       applyFilter()
     })

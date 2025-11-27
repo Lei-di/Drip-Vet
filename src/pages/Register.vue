@@ -95,7 +95,6 @@ export default defineComponent({
     const handleRegister = async () => {
       loading.value = true
       try {
-        // Passamos os dados adicionais (nome, telefone) para a função register
         await register(form.value)
         notifySuccess('Cadastro realizado com sucesso! Faça login.')
         router.push({ name: 'login' })

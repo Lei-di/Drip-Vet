@@ -61,20 +61,20 @@ import useApi from 'src/composables/UseApi'
 import useNotify from 'src/composables/UseNotify'
 import useAuthUser from 'src/composables/UseAuthUser'
 import { useRouter } from 'vue-router'
-import { columnsConsultas } from './table' // Corrigido aqui
+import { columnsConsultas } from './table' 
 
 export default defineComponent({
   name: 'PageConsultasList',
   setup () {
-    const consultas = ref([]) // Corrigido aqui
+    const consultas = ref([]) 
     const loading = ref(true)
     const router = useRouter()
     const table = 'consultas'
     const { list, remove } = useApi()
-    const { notifyError, notifySuccess, confirmDialog } = useNotify() // Adicionado confirmDialog
+    const { notifyError, notifySuccess, confirmDialog } = useNotify() 
     const { user } = useAuthUser()
 
-    const handleListConsultas = async () => { // Corrigido aqui
+    const handleListConsultas = async () => { 
       try {
         loading.value = true
         // Verifica se o usuário está logado antes de buscar
@@ -96,12 +96,12 @@ export default defineComponent({
       router.push({ name: 'form-consulta', params: { id: item.id } })
     }
 
-    const handleRemoveConsulta = async (item) => { // Corrigido aqui
+    const handleRemoveConsulta = async (item) => { 
       if (await confirmDialog('Confirmação', `Deseja realmente remover a consulta de ${item.pet_nome}?`)) {
         try {
           await remove(table, item.id)
           notifySuccess('Removido com sucesso!')
-          handleListConsultas() // Corrigido aqui
+          handleListConsultas() 
         } catch (error) {
           notifyError(error.message)
         }
@@ -109,15 +109,15 @@ export default defineComponent({
     }
 
     onMounted(() => {
-      handleListConsultas() // Corrigido aqui
+      handleListConsultas() 
     })
 
     return {
-      columnsConsultas, // Corrigido aqui
-      consultas, // Corrigido aqui
+      columnsConsultas, 
+      consultas, 
       loading,
       handleEdit,
-      handleRemoveConsulta // Corrigido aqui
+      handleRemoveConsulta 
     }
   }
 })

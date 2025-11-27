@@ -95,24 +95,20 @@ export default defineComponent({
       dataSaida: ''
     })
     
-    // Helper para converter DD/MM/AAAA para YYYY-MM-DD (formato do banco)
     const convertDateToDBFormat = (dateString) => {
       if (!dateString || dateString.length < 10) return null
       const parts = dateString.split('/')
-      // Espera DD/MM/YYYY
       if (parts.length === 3 && parts[2].length === 4) {
-        return `${parts[2]}-${parts[1]}-${parts[0]}` // YYYY-MM-DD
+        return `${parts[2]}-${parts[1]}-${parts[0]}` 
       }
       return dateString
     }
 
-    // Helper para converter YYYY-MM-DD (formato do banco) para DD/MM/AAAA
     const convertDateToBRFormat = (dateString) => {
       if (!dateString || dateString.length < 10) return ''
-      // Espera YYYY-MM-DD
       const parts = dateString.substring(0, 10).split('-')
       if (parts.length === 3) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}` // DD/MM/YYYY
+        return `${parts[2]}/${parts[1]}/${parts[0]}` 
       }
       return dateString
     }
@@ -128,16 +124,13 @@ export default defineComponent({
       try {
         const dataToSubmit = { ...form.value }
 
-        // Limpa e converte a Data de Entrada (obrigatória)
         if (dataToSubmit.dataEntrada && dataToSubmit.dataEntrada.length === 10) {
             dataToSubmit.dataEntrada = convertDateToDBFormat(dataToSubmit.dataEntrada)
         } else {
-            // Se chegou aqui com a validação do form correta, a data deveria estar completa.
-            // Se estiver incompleta, será null (o banco deve ser NOT NULL para forçar o erro).
             dataToSubmit.dataEntrada = null 
         }
         
-        // Limpa e converte a Data de Saída (somente se estiver em modo update e o campo estiver completo)
+        // Limpa e converte a Data de Saída 
         if (isUpdate.value && dataToSubmit.dataSaida && dataToSubmit.dataSaida.length === 10) {
             dataToSubmit.dataSaida = convertDateToDBFormat(dataToSubmit.dataSaida)
         } else {

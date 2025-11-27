@@ -78,14 +78,6 @@ export default defineComponent({
 
     const isUpdate = computed(() => route.params.id)
 
-    // let usuario = {}
-    // const optionsUsuarios = ref([])
-    // const form = ref({
-    //   nome: '',
-    //   email: '',
-    //   senha: '',
-    //   tipoUsuario: ''
-    // })
     const form = ref({
       nome: '',
       email: '',
@@ -99,9 +91,6 @@ export default defineComponent({
       }
     })
 
-    // const handleListTipoUsuarios = async () => {
-    //   optionsUsuarios.value = await listPublic('usuarios', usuario.value.id)
-    // }
 
     const handleSubmit = async () => {
       try {

@@ -15,6 +15,5 @@ import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'LoginLayout'
-  // A função setup foi removida daqui
 })
 </script>

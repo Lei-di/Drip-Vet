@@ -81,7 +81,7 @@ const $q = useQuasar()
 
 const agenda = ref([])
 const loading = ref(true)
-const botaoClicado = ref([]) // controla a cor de cada botão
+const botaoClicado = ref([]) 
 const detalhesAgendamento = ref(null)
 
 function goTo(page) {
@@ -92,11 +92,9 @@ const carregarAgendaDoDia = async () => {
   try {
     loading.value = true
 
-    // Obtém a data de hoje no formato YYYY-MM-DD
     const hoje = new Date()
     const dataHoje = date.formatDate(hoje, 'YYYY-MM-DD')
 
-    // Busca agendamentos do dia atual
     const { data: agendamentos, error } = await supabase
       .from('agendamento')
       .select('*')
@@ -105,7 +103,6 @@ const carregarAgendaDoDia = async () => {
 
     if (error) throw error
 
-    // Busca os nomes dos tutores, pets e veterinários
     const agendaFormatada = await Promise.all(
       (agendamentos || []).map(async (agendamento) => {
         let nomeTutor = 'Não informado'
@@ -163,7 +160,7 @@ const carregarAgendaDoDia = async () => {
           }
         }
 
-        // Formata o horário (remove segundos se existirem)
+        // Formata o horário 
         let horarioFormatado = agendamento.horaConsulta || 'Não informado'
         if (horarioFormatado && horarioFormatado.includes(':')) {
           const partes = horarioFormatado.split(':')
@@ -309,8 +306,6 @@ onMounted(() => {
 .action-links li:hover .action-label {
   color: #14532d;
 }
-
-/* ======== AGENDA DE HOJE ======== */
 
 .agenda-container {
   background-color: #a0e2a9;

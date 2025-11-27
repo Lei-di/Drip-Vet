@@ -184,7 +184,7 @@ export default defineComponent({
       tutor: null,
       imgUrl: '',
     })
-    const img = ref(null) // Guarda o novo arquivo selecionado pelo usuário
+    const img = ref(null) 
 
     const optionsChip = [
       { label: 'Sim', value: 'Sim' },
@@ -289,7 +289,6 @@ export default defineComponent({
       }
     }
 
-    // Computed property para mostrar o nome amigável para a foto atual
     const currentFileName = computed(() => {
       if (!form.value.imgUrl) return ''
       try {
@@ -297,18 +296,15 @@ export default defineComponent({
         const pathSegments = url.pathname.split('/')
         let filename = pathSegments[pathSegments.length - 1];
         
-        // Remove query parameters (e.g., ?t=...)
         filename = filename.split('?')[0];
 
-        // Tenta extrair o nome original se o formato for 'UUID-nomeoriginal.ext'
         const match = filename.match(/^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}-(.*)$/);
         if (match && match[1]) {
           return match[1]; // Retorna o nome após o UUID
         } else if (filename.length >= 36 && !filename.includes('.')) { 
-          // Se for um UUID puro sem extensão, exibe algo genérico
-          return 'foto-pet.jpg'; // Ou outro nome amigável padrão
+          return 'foto-pet.jpg'; 
         } else if (filename.includes('.')) {
-          return filename; // Se já tiver um nome com extensão, usa ele
+          return filename; 
         }
         return 'foto-pet.jpg'; // Fallback
       } catch {
@@ -317,13 +313,11 @@ export default defineComponent({
     });
 
 
-    // Função para remover a foto atual (limpar form.imgUrl e img)
     const removeCurrentFile = () => {
       form.value.imgUrl = ''
-      img.value = null // Garante que o input de arquivo esteja limpo também
+      img.value = null 
     }
 
-    // Watcher para calcular idade automaticamente quando a data mudar
     watch(
       () => form.value.dataNasc,
       (newValue) => {
@@ -342,7 +336,6 @@ export default defineComponent({
 
     const handleSubmit = async () => {
       try {
-        // Validações antes de enviar o formulário
         if (img.value) { // Se um novo arquivo foi selecionado
           const fileName = img.value.name.toLowerCase()
           const allowedExtensions = ['.png', '.jpg', '.jpeg']
@@ -353,53 +346,38 @@ export default defineComponent({
             return // Impede o envio do formulário
           }
 
-          // A foto será substituída: faz upload do novo arquivo
           const imgUrl = await uploadImg(img.value, 'pets')
           form.value.imgUrl = imgUrl
         } else if (isUpdate.value && form.value.imgUrl === '') {
-          // Se estiver editando e o usuário removeu o chip da foto atual,
-          // o campo imgUrl já está em '' e será enviado assim para o banco.
-          // Isso irá apagar a imagem no banco, se a coluna permitir NULL.
+
         } 
-        // Se isUpdate e !img.value e form.imgUrl ainda tem valor, significa que
-        // nenhuma nova foto foi selecionada e a antiga foi mantida. Não precisa fazer nada aqui.
 
-
-        // Copia dados e remove campos não persistentes (como 'saude' e 'cor')
         const dataParaEnvio = { ...form.value }
         delete dataParaEnvio.saude
         delete dataParaEnvio.cor 
 
-        // Converte idade formatada para número (meses) para salvar no banco
         if (idadeEmMeses.value !== null) {
           dataParaEnvio.idade = idadeEmMeses.value
         }
 
-        // Converte chip de string para boolean
         if (dataParaEnvio.chip !== undefined && dataParaEnvio.chip !== null) {
           dataParaEnvio.chip = dataParaEnvio.chip === 'Sim' || dataParaEnvio.chip === true
         }
 
-        // Garante que tutor seja um número (bigint) ou null
-        // **REFORÇANDO A VALIDAÇÃO DO TUTOR**
+
         if (dataParaEnvio.tutor && typeof dataParaEnvio.tutor === 'object' && dataParaEnvio.tutor.id) {
-            // Se o tutor for um objeto com id (pode acontecer se o v-model não emitir value, mas objeto)
             dataParaEnvio.tutor = parseInt(dataParaEnvio.tutor.id);
         } else if (dataParaEnvio.tutor && !isNaN(dataParaEnvio.tutor)) {
-            // Se já for um número ou string numérica
             dataParaEnvio.tutor = parseInt(dataParaEnvio.tutor);
         } else {
-            // Se for null, undefined, ou não for um número válido
             dataParaEnvio.tutor = null; 
         }
 
-        // Converte data BR (DD/MM/AAAA) para formato do banco (AAAA-MM-DD)
         if (dataParaEnvio.dataNasc) {
           const dataObjeto = date.extractDate(dataParaEnvio.dataNasc, 'DD/MM/YYYY')
           if (dataObjeto) {
             dataParaEnvio.dataNasc = date.formatDate(dataObjeto, 'YYYY-MM-DD')
           } else {
-            // Se a dataNasc for inválida após extração, defina como null para evitar erro no DB
             dataParaEnvio.dataNasc = null; 
           }
         }
@@ -431,7 +409,6 @@ export default defineComponent({
       try {
         const petData = await getById(table, id)
         
-        // Mapeia os dados do banco para o formulário
         const dataToLoad = {
             nome: petData.nome || '',
             observacoes: petData.observacoes || '',
@@ -445,7 +422,6 @@ export default defineComponent({
             imgUrl: petData.imgUrl || '',
         }
         
-        // Converte data do banco para formato BR ao editar
         if (dataToLoad.dataNasc) {
           dataToLoad.dataNasc = date.formatDate(dataToLoad.dataNasc, 'DD/MM/YYYY')
         }

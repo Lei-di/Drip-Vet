@@ -19,7 +19,6 @@ export default function useNotify () {
     })
   }
 
-  // ESTA É A VERSÃO CORRIGIDA DA FUNÇÃO
   const confirmDialog = (title, message) => {
     return new Promise((resolve) => {
       $q.dialog({
@@ -28,9 +27,9 @@ export default function useNotify () {
         cancel: true,
         persistent: true
       }).onOk(() => {
-        resolve(true) // Retorna 'true' se o usuário clicar em "OK"
+        resolve(true) 
       }).onCancel(() => {
-        resolve(false) // Retorna 'false' se o usuário clicar em "Cancelar"
+        resolve(false) 
       })
     })
   }

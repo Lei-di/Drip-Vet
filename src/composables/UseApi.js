@@ -19,7 +19,6 @@ export default function useApi() {
   const { setBrand } = useBrand()
   const $q = useQuasar()
 
-  // Busca o ID do usuario na tabela usuarios baseado no email do auth.users
   const getUsuarioId = async () => {
     if (!user.value?.email) return null
 
@@ -57,7 +56,6 @@ export default function useApi() {
   }
 
   const getById = async (table, id) => {
-    // Lógica específica para trazer endereço junto com o tutor
     if (table === 'tutores') {
       // Busca o tutor primeiro
       const { data: tutorData, error: tutorError } = await supabase
@@ -68,7 +66,6 @@ export default function useApi() {
 
       if (tutorError) throw tutorError
 
-      // Se o tutor tem um endereco_id, busca o endereço separadamente
       let enderecoData = null
       if (tutorData.endereco) {
         const { data: endereco, error: enderecoError } = await supabase
@@ -77,13 +74,11 @@ export default function useApi() {
           .eq('id', tutorData.endereco)
           .single()
 
-        // Não lança erro se não encontrar endereço, apenas registra
         if (!enderecoError && endereco) {
           enderecoData = endereco
         }
       }
 
-      // Combina os dados do tutor com os dados do endereço
       const usuario = {
         ...tutorData,
         endereco_id: enderecoData?.id || tutorData.endereco || null,
@@ -97,34 +92,26 @@ export default function useApi() {
       return usuario
     }
 
-    // Padrão para outras tabelas
+
     const { data, error } = await supabase.from(table).select('*').eq('id', id).single()
     if (error) throw error
     return data
   }
 
   const post = async (table, form) => {
-    // Tabelas que precisam de 'user' (bigint - referencia usuarios)
     const tablesWithUserBigint = ['tutores', 'agendamento', 'estoqueMedicamentos', 'campanhas'] // <--- CORREÇÃO APLICADA
 
-    // Tabelas que precisam de 'user' (uuid - referencia auth.users)
     const tablesWithUserUuid = ['pets']
 
-    // Prepara os dados para inserção
     const dataToInsert = { ...form }
 
-    // Adiciona 'user' conforme o tipo necessário
     if (user.value?.id) {
       if (tablesWithUserBigint.includes(table)) {
-        // Para tabelas que referenciam usuarios (bigint)
-        // Busca o id do usuario na tabela usuarios baseado no email
         const usuarioId = await getUsuarioId()
         if (usuarioId) {
           dataToInsert.user = usuarioId
         }
-        // Se não encontrar, deixa sem user (pode causar erro de constraint se for NOT NULL)
       } else if (tablesWithUserUuid.includes(table)) {
-        // Para pets que referenciam auth.users (uuid)
         dataToInsert.user = user.value.id
       }
     }
@@ -167,7 +154,6 @@ export default function useApi() {
   }
 
   const getBrand = async () => {
-    // Busca o usuario_id baseado no email do auth.users
     const usuarioId = await getUsuarioId()
     if (usuarioId) {
       $q.loading.show({

@@ -181,17 +181,12 @@ export default defineComponent({
     }
 
     const validarNumero = (numero) => {
-      // Se não tiver valor, retorna false (campo obrigatório)
       if (numero === null || numero === undefined || numero === '') return false
 
-      // Converte para string e remove espaços
       const numeroStr = String(numero).trim()
 
-      // Se após remover espaços estiver vazio, retorna false
       if (numeroStr.length === 0) return false
 
-      // Verifica se contém apenas dígitos e tem no máximo 5 caracteres
-      // Aceita valores de 1 a 5 dígitos
       return /^\d+$/.test(numeroStr) && numeroStr.length >= 1 && numeroStr.length <= 5
     }
 
@@ -204,40 +199,31 @@ export default defineComponent({
     }
 
     const limitarNumero = (valor) => {
-      // Se não tiver valor, permite que seja vazio (será validado pelo form)
       if (!valor && valor !== 0) {
         return
       }
 
-      // Converte para string
       const str = String(valor)
 
-      // Remove caracteres não numéricos e limita a 5 dígitos
       const numeroLimpo = str.replace(/\D/g, '').slice(0, 5)
 
-      // Só atualiza se o valor foi alterado (para evitar loops)
       if (numeroLimpo !== str) {
         form.value.numero = numeroLimpo
       }
     }
 
-    // Watcher para limitar o número a 5 dígitos
     watch(
       () => form.value.numero,
       (newVal) => {
-        // Se não tiver valor, não faz nada
         if (!newVal && newVal !== 0) return
 
-        // Converte para string
         const str = String(newVal)
 
-        // Se tiver mais de 5 caracteres, limita
         if (str.length > 5) {
           form.value.numero = str.slice(0, 5)
           return
         }
 
-        // Remove caracteres não numéricos apenas se houver caracteres inválidos
         if (!/^\d*$/.test(str)) {
           const limpo = str.replace(/\D/g, '')
           if (limpo !== str) {
@@ -255,7 +241,6 @@ export default defineComponent({
 
     const handleSubmit = async () => {
       try {
-        // Valida o formulário antes de processar
         if (formRef.value) {
           const valid = await formRef.value.validate()
           if (!valid) {
@@ -263,10 +248,8 @@ export default defineComponent({
           }
         }
 
-        // Valida e limpa o número antes de salvar
         const numeroOriginal = form.value.numero
 
-        // Converte para string e valida
         const numeroStr =
           numeroOriginal !== null && numeroOriginal !== undefined
             ? String(numeroOriginal).trim()
@@ -289,11 +272,9 @@ export default defineComponent({
           return
         }
 
-        // Limpa o CEP removendo formatação
         const cepLimpo = form.value.cep.replace(/\D/g, '')
 
         if (isUpdate.value) {
-          // Atualiza dados do tutor
           const tutorData = {
             id: isUpdate.value,
             nome: form.value.nome,
@@ -304,7 +285,6 @@ export default defineComponent({
           }
           await update('tutores', tutorData)
 
-          // Atualiza endereço (assumindo que temos o ID do endereço pelo getById)
           if (form.value.endereco_id) {
             const enderecoData = {
               id: form.value.endereco_id,
@@ -321,8 +301,6 @@ export default defineComponent({
           notifySuccess('Tutor atualizado com sucesso!')
           router.push({ name: 'tutor' })
         } else {
-          // Cadastra novo tutor
-          // Primeiro cria o endereço (sem tutor ainda)
           const enderecoData = {
             rua: form.value.rua,
             numero: numeroLimpo,
@@ -330,7 +308,7 @@ export default defineComponent({
             cidade: form.value.cidade,
             estado: form.value.estado.toUpperCase(),
             cep: cepLimpo,
-            tutor: null, // Será atualizado depois
+            tutor: null, 
           }
 
           const novoEndereco = await post('endereco', enderecoData)
@@ -341,7 +319,6 @@ export default defineComponent({
 
           const enderecoId = novoEndereco[0].id
 
-          // Agora cria o tutor com referência ao endereço
           const tutorData = {
             nome: form.value.nome,
             cpf: form.value.cpf,
@@ -356,7 +333,6 @@ export default defineComponent({
           if (novoTutor && novoTutor.length > 0) {
             const tutorId = novoTutor[0].id
 
-            // Atualiza o endereço com a referência ao tutor (relação circular)
             const enderecoUpdate = {
               id: enderecoId,
               tutor: tutorId,
@@ -380,8 +356,6 @@ export default defineComponent({
         const response = await getById('tutores', id)
 
         if (response) {
-          // Garante que todos os campos tenham valores padrão se estiverem vazios
-          // Converte número para string para garantir compatibilidade com validação
           const numeroFormatado =
             response.numero !== null && response.numero !== undefined ? String(response.numero) : ''
 

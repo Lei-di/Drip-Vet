@@ -17,18 +17,14 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Configuração do Supabase ausente')
 }
 
-// Cria o cliente
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// Mantém o estado global do usuário atualizado
 supabase.auth.onAuthStateChange((event, session) => {
   user.value = session?.user || null
 })
 
-// Exporta como função default para uso como composable
 export default function useSupabase() {
   return { supabase }
 }
 
-// Exporta também o cliente diretamente para compatibilidade
 export { supabase }
