@@ -405,6 +405,7 @@ export default defineComponent({
         }
 
         if (isUpdate.value) {
+          dataParaEnvio.id = parseInt(isUpdate.value)
           await update(table, dataParaEnvio)
           notifySuccess('PET atualizado com sucesso!')
         } else {

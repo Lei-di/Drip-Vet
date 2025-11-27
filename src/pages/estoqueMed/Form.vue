@@ -145,6 +145,7 @@ export default defineComponent({
         }
         
         if (isUpdate.value) {
+          dataToSubmit.id = isUpdate.value
           await update(table, dataToSubmit)
           notifySuccess('Medicamento atualizado com sucesso!')
         } else {
